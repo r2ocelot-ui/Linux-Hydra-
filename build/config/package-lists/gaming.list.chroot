@@ -1,0 +1,51 @@
+# Paquetes de gaming y compatibilidad Windows
+
+# Steam
+steam
+steam-devices
+steam-libs-amd64
+steam-libs-i386
+
+# Lutris (gestor de juegos)
+lutris
+
+# Wine y compatibilidad Windows
+wine
+wine64
+wine32
+winetricks
+playonlinux
+
+# MangoHud (overlay de rendimiento)
+mangohud
+mangohud:i386
+goverlay
+
+# Vulkan
+vulkan-tools
+vulkan-validationlayers
+mesa-vulkan-drivers
+mesa-vulkan-drivers:i386
+
+# GameMode (optimización de rendimiento)
+gamemode
+libgamemode0
+libgamemodeauto0
+
+# Herramientas de GPU
+nvidia-detect
+mesa-utils
+vainfo
+vdpauinfo
+
+# Joystick y gamepads
+jstest-gtk
+gamepad-tool
+joystick
+
+# Emuladores populares
+retroarch
+libretro-core-info
+
+# Discord
+discord

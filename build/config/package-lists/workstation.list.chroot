@@ -1,0 +1,50 @@
+# Herramientas de desarrollo y workstation
+
+# Entornos de desarrollo
+code
+git
+git-lfs
+meld
+
+# Python
+python3
+python3-pip
+python3-venv
+
+# Node.js
+nodejs
+npm
+
+# Compiladores y build tools
+gcc
+g++
+make
+cmake
+build-essential
+pkg-config
+
+# Bases de datos (clientes)
+sqlite3
+postgresql-client
+mysql-client
+
+# Docker
+docker.io
+docker-compose
+
+# Herramientas de red y análisis
+wireshark
+nmap
+traceroute
+iperf3
+dnsutils
+
+# Diseño y modelado 3D
+blender
+freecad
+
+# Edición de video
+kdenlive
+
+# Gestión de proyectos
+taskwarrior

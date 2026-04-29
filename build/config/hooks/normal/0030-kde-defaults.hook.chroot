@@ -1,0 +1,97 @@
+#!/bin/bash
+# Aplicar configuración KDE Plasma por defecto (estilo Windows)
+set -e
+
+KDE_SKEL="/etc/skel"
+
+# Copiar configuración KDE al skel
+mkdir -p "${KDE_SKEL}/.config"
+mkdir -p "${KDE_SKEL}/.local/share/color-schemes"
+
+# Plasma — barra inferior tipo Windows (una sola barra abajo, sin dock superior)
+mkdir -p "${KDE_SKEL}/.config/plasma-org.kde.plasma.desktop-appletsrc.d"
+
+cat > "${KDE_SKEL}/.config/kscreenlockerrc" << 'EOF'
+[Daemon]
+Autolock=true
+LockOnResume=true
+Timeout=10
+
+[Greeter]
+Theme=org.kde.breezedark.desktop
+EOF
+
+cat > "${KDE_SKEL}/.config/kdeglobals" << 'EOF'
+[Colors:Button]
+BackgroundNormal=49,54,59
+
+[Colors:View]
+BackgroundNormal=27,30,32
+
+[Colors:Window]
+BackgroundNormal=49,54,59
+
+[General]
+ColorScheme=BreezeDark
+Name=Breeze Dark
+fixed=Hack,10,-1,5,50,0,0,0,0,0
+font=Noto Sans,10,-1,5,50,0,0,0,0,0
+menuFont=Noto Sans,10,-1,5,50,0,0,0,0,0
+smallestReadableFont=Noto Sans,8,-1,5,50,0,0,0,0,0
+toolBarFont=Noto Sans,9,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=breeze-dark
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+widgetStyle=Breeze
+
+[WM]
+activeBackground=49,54,59
+activeBlend=255,255,255
+activeForeground=239,240,241
+inactiveBackground=42,46,50
+inactiveBlend=75,71,67
+inactiveForeground=189,195,199
+EOF
+
+cat > "${KDE_SKEL}/.config/kwinrc" << 'EOF'
+[Compositing]
+AnimationSpeed=3
+Backend=OpenGL
+Enabled=true
+GLCore=true
+HiddenPreviews=5
+OpenGLIsUnsafe=false
+WindowsBlockCompositing=true
+
+[Effect-Blur]
+BlurStrength=15
+NoiseStrength=0
+
+[Effect-Overview]
+BorderActivate=9
+
+[ElectricBorders]
+Bottom=None
+BottomLeft=None
+BottomRight=None
+Left=None
+Right=None
+Top=None
+TopLeft=None
+TopRight=None
+
+[TabBox]
+LayoutName=thumbnail_grid
+
+[Windows]
+RollOverDesktops=true
+EOF
+
+cat > "${KDE_SKEL}/.config/plasmarc" << 'EOF'
+[Theme]
+name=default
+EOF

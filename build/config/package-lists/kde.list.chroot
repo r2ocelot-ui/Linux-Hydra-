@@ -1,0 +1,64 @@
+# KDE Plasma y entorno de escritorio
+plasma-desktop
+plasma-workspace
+plasma-nm
+plasma-pa
+plasma-browser-integration
+plasma-disks
+plasma-firewall
+plasma-systemmonitor
+plasma-thunderbolt
+plasma-vault
+plasma-widgets-addons
+
+# KDE core apps
+dolphin
+konsole
+kate
+ark
+okular
+gwenview
+spectacle
+kcalc
+krunner
+kdeconnect
+kwrite
+ksysguard
+partitionmanager
+filelight
+sweeper
+kfind
+kcharselect
+kruler
+
+# KDE Plasma addons
+kdeplasma-addons
+kwin-addons
+kwin-effects-squash
+
+# SDDM (gestor de sesión)
+sddm
+sddm-theme-breeze
+
+# Qt y GTK integración
+breeze
+breeze-gtk-theme
+breeze-icon-theme
+kde-config-gtk-style
+kde-config-gtk-style-preview
+qt5-style-kvantum
+qt5-style-kvantum-themes
+
+# Fuentes KDE
+fonts-hack
+fonts-inconsolata
+
+# Kio extras (miniaturas, servicios)
+kio-extras
+kdegraphics-thumbnailers
+ffmpegthumbs
+kimageformats
+
+# Herramientas KDE adicionales
+baloo-kf5
+milou

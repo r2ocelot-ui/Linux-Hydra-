@@ -1,0 +1,20 @@
+#!/bin/bash
+# Limpieza final antes de generar la ISO
+set -e
+
+# Limpiar caché de apt
+apt-get clean
+apt-get autoremove --purge -y
+
+# Eliminar logs generados durante el build
+find /var/log -type f -delete
+find /tmp -type f -delete
+
+# Limpiar historial de bash
+cat /dev/null > /root/.bash_history || true
+find /home -name ".bash_history" -exec cat /dev/null > {} \; || true
+
+# Regenerar initrd
+update-initramfs -u -k all
+
+echo "Limpieza completada."

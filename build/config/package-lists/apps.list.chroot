@@ -1,0 +1,61 @@
+# Aplicaciones esenciales de usuario
+
+# Navegador web
+firefox-esr
+
+# Ofimática
+libreoffice
+libreoffice-kde5
+libreoffice-l10n-es
+libreoffice-help-es
+
+# Correo electrónico
+thunderbird
+thunderbird-l10n-es-es
+
+# Multimedia
+vlc
+mpv
+rhythmbox
+
+# Imágenes
+gimp
+inkscape
+
+# Comunicación
+telegram-desktop
+
+# PDF y documentos
+evince
+xournalpp
+
+# Notas y productividad
+obsidian
+
+# Utilidades del sistema
+timeshift
+gnome-disk-utility
+gparted
+bleachbit
+stacer
+
+# Compresión y archivos
+file-roller
+
+# Gestor de contraseñas
+keepassxc
+
+# Clientes de escritorio remoto
+remmina
+remmina-plugin-rdp
+remmina-plugin-vnc
+
+# Virtualización de usuario
+virtualbox
+
+# Descarga
+transmission-qt
+uget
+
+# Terminal mejorada (ya cubierta por konsole, extra)
+tmux

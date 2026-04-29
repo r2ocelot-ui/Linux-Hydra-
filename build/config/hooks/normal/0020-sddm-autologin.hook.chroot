@@ -1,0 +1,26 @@
+#!/bin/bash
+# Configurar SDDM como display manager y habilitar autologin en modo live
+set -e
+
+# Establecer SDDM como DM por defecto
+systemctl enable sddm
+
+# Configuración base de SDDM para la sesión live
+mkdir -p /etc/sddm.conf.d
+
+cat > /etc/sddm.conf.d/hydra.conf << 'EOF'
+[Theme]
+Current=hydra-sddm
+
+[Autologin]
+Relogin=false
+Session=plasma
+User=
+
+[General]
+HaltCommand=/usr/bin/systemctl poweroff
+RebootCommand=/usr/bin/systemctl reboot
+
+[X11]
+ServerArguments=-nolisten tcp
+EOF

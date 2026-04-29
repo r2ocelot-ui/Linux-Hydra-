@@ -1,0 +1,85 @@
+# Paquetes base del sistema — siempre se instalan
+# Kernel y firmware
+linux-image-amd64
+linux-headers-amd64
+firmware-linux
+firmware-linux-nonfree
+firmware-misc-nonfree
+firmware-iwlwifi
+firmware-atheros
+firmware-realtek
+amd64-microcode
+intel-microcode
+
+# Herramientas básicas de sistema
+sudo
+bash-completion
+curl
+wget
+git
+vim
+nano
+htop
+neofetch
+unzip
+zip
+p7zip-full
+tar
+rsync
+gparted
+inxi
+lshw
+usbutils
+pciutils
+dkms
+
+# Red
+network-manager
+network-manager-gnome
+net-tools
+openssh-client
+avahi-daemon
+
+# Audio y sonido
+pulseaudio
+pulseaudio-module-bluetooth
+alsa-utils
+pavucontrol
+
+# Bluetooth
+bluetooth
+bluez
+blueman
+
+# Impresoras
+cups
+system-config-printer
+printer-driver-gutenprint
+
+# Fuentes
+fonts-liberation
+fonts-noto
+fonts-noto-color-emoji
+ttf-mscorefonts-installer
+
+# Soporte multimedia (codecs)
+ffmpeg
+gstreamer1.0-plugins-base
+gstreamer1.0-plugins-good
+gstreamer1.0-plugins-bad
+gstreamer1.0-plugins-ugly
+gstreamer1.0-libav
+
+# Sistema live e instalador
+calamares
+calamares-settings-debian
+live-boot
+live-config
+live-config-systemd
+
+# Virtualización (guest tools)
+open-vm-tools
+open-vm-tools-desktop
+virtualbox-guest-utils
+virtualbox-guest-x11
+spice-vdagent

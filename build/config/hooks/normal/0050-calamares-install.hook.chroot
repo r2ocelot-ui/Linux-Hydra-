@@ -1,0 +1,26 @@
+#!/bin/bash
+# Configurar Calamares como instalador del sistema live
+set -e
+
+# Copiar configuración de Calamares al sistema
+if [ -d /etc/calamares.hydra ]; then
+    cp -r /etc/calamares.hydra/. /etc/calamares/
+fi
+
+# Asegurar que el instalador aparece en el escritorio live
+mkdir -p /etc/skel/Desktop
+cat > /etc/skel/Desktop/install-hydra.desktop << 'EOF'
+[Desktop Entry]
+Name=Instalar Hydra OS
+Name[en]=Install Hydra OS
+Comment=Instala Hydra OS en tu disco duro
+Comment[en]=Install Hydra OS to your hard drive
+Exec=sudo -E calamares
+Icon=calamares
+Terminal=false
+Type=Application
+Categories=System;
+EOF
+chmod +x /etc/skel/Desktop/install-hydra.desktop
+
+echo "Calamares configurado."

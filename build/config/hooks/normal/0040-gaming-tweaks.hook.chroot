@@ -1,0 +1,45 @@
+#!/bin/bash
+# Optimizaciones de gaming y soporte multimedia
+set -e
+
+# Habilitar arquitectura i386 para Steam / Wine
+dpkg --add-architecture i386
+
+# Configurar límites de sistema para gaming
+cat > /etc/security/limits.d/99-gaming.conf << 'EOF'
+# Mejoras de rendimiento para gaming
+*    soft    nofile    1048576
+*    hard    nofile    1048576
+*    soft    memlock   unlimited
+*    hard    memlock   unlimited
+EOF
+
+# Parámetros del kernel para gaming y rendimiento
+cat > /etc/sysctl.d/99-hydra-gaming.conf << 'EOF'
+# Reducir latencia de swap
+vm.swappiness = 10
+
+# Aumentar mapas de memoria para juegos que lo necesitan (Dota 2, etc.)
+vm.max_map_count = 2147483642
+
+# Mejorar rendimiento de red
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+
+# Scheduler de CPU para baja latencia
+kernel.sched_autogroup_enabled = 0
+EOF
+
+# Habilitar GameMode service
+systemctl enable gamemoded || true
+
+# Configurar udev para gamepad
+cat > /etc/udev/rules.d/60-steam-input.rules << 'EOF'
+# Reglas udev para controllers de Steam
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", GROUP="input", MODE="0666"
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
+KERNEL=="hidraw*", ATTRS{idVendor}=="28de", MODE="0666"
+KERNEL=="hidraw*", KERNELS=="*057E:*", MODE="0666"
+EOF
+
+echo "Gaming tweaks aplicados."
