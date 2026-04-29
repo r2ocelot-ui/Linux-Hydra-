@@ -1,7 +1,7 @@
-# Herramientas de desarrollo y workstation
-# (VSCode, Docker oficial y otros se instalan vía script post-install)
+# Herramientas de desarrollo (livianas, presentes en Debian Bookworm)
+# Apps pesadas (blender, freecad, kdenlive) se instalan post-instalación.
 
-# Git y control de versiones
+# Control de versiones
 git
 git-lfs
 meld
@@ -15,7 +15,7 @@ python3-venv
 nodejs
 npm
 
-# Compiladores y build tools
+# Compiladores
 gcc
 g++
 make
@@ -23,18 +23,8 @@ cmake
 build-essential
 pkg-config
 
-# Bases de datos (clientes)
-sqlite3
-postgresql-client
-default-mysql-client
-
-# Herramientas de red y análisis
+# Red / análisis
 nmap
 traceroute
 iperf3
 dnsutils
-
-# Edición de video / 3D
-kdenlive
-blender
-freecad

@@ -1,4 +1,4 @@
-# Aplicaciones esenciales de usuario
+# Aplicaciones esenciales — todas presentes en Debian Bookworm
 
 # Navegador web
 firefox-esr
@@ -24,11 +24,10 @@ inkscape
 # Comunicación
 telegram-desktop
 
-# PDF y documentos
+# PDF y notas
 xournalpp
 
 # Utilidades del sistema
-timeshift
 gnome-disk-utility
 bleachbit
 
@@ -38,13 +37,13 @@ file-roller
 # Gestor de contraseñas
 keepassxc
 
-# Clientes de escritorio remoto
+# Escritorio remoto
 remmina
 remmina-plugin-rdp
 remmina-plugin-vnc
 
-# Descarga
+# Descarga de torrents
 transmission-qt
 
-# Terminal extra
+# Terminal multiplex
 tmux

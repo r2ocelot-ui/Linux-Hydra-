@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - main
-      - claude/**
+      - 'claude/**'
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      release:
-        description: 'Publicar como release (requiere tag)'
-        required: false
-        default: 'false'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
   group: build-iso-${{ github.ref }}
@@ -20,84 +18,50 @@ concurrency:
 
 jobs:
   build:
-    name: Build ISO (Debian Bookworm + KDE)
-    runs-on: ubuntu-22.04
+    name: ISO (Debian Bookworm + KDE)
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Free up disk space on runner
+      # Liberar espacio: los runners ubuntu-24.04 tienen ~67 GB total,
+      # ~30 GB libres por defecto. El build necesita ~15 GB.
+      - name: Liberar espacio en disco
         run: |
-          echo "=== Espacio antes ==="
-          df -h /
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost \
-                      "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune -af || true
+          echo "ANTES:" && df -h /
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/lib/android \
+            /opt/ghc \
+            /opt/hostedtoolcache \
+            /usr/local/share/boost \
+            "$AGENT_TOOLSDIRECTORY" \
+            /usr/share/swift \
+            /usr/local/julia*
           sudo apt-get clean
-          echo "=== Espacio después ==="
-          df -h /
+          sudo docker image prune -af 2>/dev/null || true
+          echo "DESPUÉS:" && df -h /
 
-      - name: Run build inside Debian Bookworm container
+      - name: Construir ISO dentro de contenedor Debian Bookworm
         run: |
+          chmod +x .github/scripts/build-in-container.sh
           docker run --rm --privileged \
-            -v "${PWD}:/workspace" \
-            -w /workspace \
+            --volume "$PWD:/workspace" \
+            --workdir /workspace \
             debian:bookworm \
-            bash -c '
-              set -euxo pipefail
-              export DEBIAN_FRONTEND=noninteractive
+            bash /workspace/.github/scripts/build-in-container.sh
 
-              echo "=== Configurando repos Debian (main + contrib + non-free + non-free-firmware) ==="
-              cat > /etc/apt/sources.list <<EOF
-              deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
-              deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
-              deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
-              EOF
-
-              echo "=== Instalando dependencias de build ==="
-              apt-get update -q
-              apt-get install -y --no-install-recommends \
-                live-build debootstrap squashfs-tools xorriso \
-                grub-efi-amd64-bin grub-pc-bin syslinux-common isolinux \
-                ca-certificates wget rsync mtools dosfstools
-
-              echo "=== Preparando configuración de Calamares y KDE en chroot ==="
-              mkdir -p build/config/includes.chroot/etc/calamares.hydra
-              cp -r calamares/. build/config/includes.chroot/etc/calamares.hydra/
-
-              mkdir -p build/config/includes.chroot/etc/skel
-              cp -r kde-config/skel/. build/config/includes.chroot/etc/skel/
-
-              echo "=== Construyendo ISO con live-build ==="
-              cd build
-              lb clean --purge
-              lb config
-              lb build 2>&1 | tee build.log
-
-              echo "=== Renombrando ISO ==="
-              if [ -f live-image-amd64.hybrid.iso ]; then
-                mv live-image-amd64.hybrid.iso hydra-os-amd64.iso
-              elif [ -f hydra-os-amd64.hybrid.iso ]; then
-                mv hydra-os-amd64.hybrid.iso hydra-os-amd64.iso
-              fi
-
-              ls -lh *.iso || (echo "ERROR: no se generó ISO"; tail -100 build.log; exit 1)
-
-              echo "=== Generando checksums ==="
-              sha256sum hydra-os-amd64.iso > hydra-os-amd64.iso.sha256
-              md5sum    hydra-os-amd64.iso > hydra-os-amd64.iso.md5
-            '
-
-      - name: Show ISO info
+      - name: Mostrar info de la ISO
         run: |
-          ls -lh build/hydra-os-amd64.iso*
+          echo "──────────────────────────────"
+          ls -lh build/hydra-os-amd64.iso
           echo ""
           echo "SHA256: $(cat build/hydra-os-amd64.iso.sha256)"
+          echo "──────────────────────────────"
 
-      - name: Upload ISO as workflow artifact
+      - name: Subir ISO como artefacto descargable
         uses: actions/upload-artifact@v4
         with:
           name: hydra-os-amd64-iso
@@ -108,33 +72,44 @@ jobs:
           retention-days: 14
           compression-level: 0
 
-      - name: Publish GitHub Release (only on tag)
+      - name: Mostrar log en caso de fallo
+        if: failure()
+        run: |
+          echo "═══ ÚLTIMAS 200 LÍNEAS DEL LOG ═══"
+          tail -200 build/build.log 2>/dev/null || echo "Sin log disponible"
+
+      # Solo se ejecuta al crear un tag vX.Y.Z
+      - name: Publicar Release en GitHub
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: Hydra OS ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
           generate_release_notes: true
           body: |
-            # Hydra OS ${{ github.ref_name }}
+            ## Hydra OS ${{ github.ref_name }}
 
-            Distribución Linux basada en Debian 12 Bookworm con KDE Plasma.
+            Distribución Linux | Debian 12 Bookworm | KDE Plasma 5
 
-            ## Descargar
-            - `hydra-os-amd64.iso` — ISO instalable (UEFI + BIOS legacy)
+            ### Descargar
+            | Archivo | Descripción |
+            |---|---|
+            | `hydra-os-amd64.iso` | ISO instalable (UEFI + BIOS) |
+            | `hydra-os-amd64.iso.sha256` | Verificación SHA256 |
 
-            ## Verificar
+            ### Verificar integridad
             ```bash
             sha256sum -c hydra-os-amd64.iso.sha256
             ```
 
-            ## Instalar
-            1. Quemar ISO en USB con Rufus (Windows), Balena Etcher (Mac/Linux), o `dd`
-            2. Arrancar PC desde USB
-            3. Doble-clic en "Instalar Hydra OS" en el escritorio
-            4. Calamares te guía por la instalación
+            ### Instalar
+            1. Quemar ISO en USB ≥8 GB con **Rufus** (Windows) o **Balena Etcher**
+            2. Arrancar PC desde USB (F2/F12/Del en BIOS)
+            3. Probar modo Live o doble-clic en **"Instalar Hydra OS"**
+            4. Seguir el asistente Calamares
+            5. Reiniciar y retirar el USB
           files: |
             build/hydra-os-amd64.iso
             build/hydra-os-amd64.iso.sha256

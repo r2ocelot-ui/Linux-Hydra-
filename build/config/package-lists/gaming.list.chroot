@@ -1,36 +1,31 @@
-# Paquetes de gaming y compatibilidad Windows
-# Nota: paquetes :i386 y otros de terceros (Discord, Steam-libs) se instalan
-# vía scripts/setup-gaming.sh tras la instalación, ya que requieren habilitar
-# la arquitectura i386 y/o repositorios externos.
+# Gaming — solo paquetes confirmados en Debian Bookworm sin i386
+# Steam, Wine y paquetes :i386 se instalan post-instalación
+# vía scripts/setup-gaming.sh (requieren habilitar arquitectura i386)
 
 # Lutris (gestor de juegos)
 lutris
 
-# Wine y compatibilidad Windows
-wine
-winetricks
-
 # MangoHud (overlay de rendimiento)
 mangohud
 
-# Vulkan
+# Vulkan (solo amd64)
 vulkan-tools
 mesa-vulkan-drivers
 
-# GameMode (optimización de rendimiento)
+# GameMode (optimización CPU/GPU)
 gamemode
 libgamemode0
 libgamemodeauto0
 
-# Herramientas de GPU
+# Info GPU
 mesa-utils
 vainfo
 vdpauinfo
 
-# Joystick y gamepads
+# Joysticks y mandos
 jstest-gtk
 joystick
 
-# Emuladores populares
+# Emuladores
 retroarch
 libretro-core-info
