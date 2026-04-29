@@ -8,14 +8,12 @@ export LC_ALL=C
 step() { echo -e "\n\033[1;36m═══ $* ═══\033[0m\n"; }
 err()  { echo -e "\n\033[1;31m✗ $*\033[0m\n" >&2; }
 
-trap 'err "FALLO en línea $LINENO. Espacio actual:"; df -h / 2>/dev/null; exit 1' ERR
-
 # ──────────────────────────────────────────────
 step "Estado inicial del contenedor"
-df -h /
-free -h
-nproc
-cat /etc/debian_version
+df -h / || true
+awk '/MemTotal|MemAvailable/ {print}' /proc/meminfo || true
+nproc || true
+cat /etc/debian_version || true
 
 # ──────────────────────────────────────────────
 step "Configurando repositorios Debian"
@@ -25,7 +23,7 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
 deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
 SOURCES
 
-apt-get update -q
+apt-get update -q || { err "apt-get update falló"; exit 1; }
 
 # ──────────────────────────────────────────────
 step "Instalando dependencias de live-build"
@@ -45,9 +43,13 @@ apt-get install -y --no-install-recommends \
     ca-certificates \
     rsync \
     wget \
-    git
+    git \
+    procps \
+    coreutils \
+    findutils || { err "instalación de dependencias falló"; exit 1; }
 
 dpkg -l live-build | tail -1
+which lb && lb --version || true
 
 # ──────────────────────────────────────────────
 step "Preparando includes del chroot"
@@ -67,16 +69,19 @@ cd build
 lb clean --purge 2>&1 || true
 
 step "Ejecutando lb config"
-lb config 2>&1 | tee config.log
+if ! lb config 2>&1 | tee config.log; then
+    err "lb config falló"
+    cat config.log
+    exit 1
+fi
 
 step "Ejecutando lb build (puede tardar 30-60 min)"
-# pipefail desactivado aquí: lb build puede salir con códigos raros
-# que no son fallos críticos si la ISO se generó
-set +e
+# No abortamos por exit code de lb build — verificamos que la ISO se haya
+# generado al final (a veces lb build sale con códigos raros pero la ISO existe)
 lb build 2>&1 | tee build.log
-LB_EXIT=$?
-set -e
+LB_EXIT=${PIPESTATUS[0]}
 
+echo ""
 echo "lb build terminó con código: $LB_EXIT"
 echo "Espacio tras el build:"
 df -h /
@@ -88,7 +93,7 @@ ls -la *.iso *.img 2>/dev/null || true
 ISO=$(find . -maxdepth 2 -name "*.iso" -type f 2>/dev/null | head -1)
 
 if [[ -z "$ISO" ]]; then
-    err "No se generó ninguna ISO. Volcado de error:"
+    err "No se generó ninguna ISO. lb build exit code: $LB_EXIT"
     echo ""
     echo "═══ ÚLTIMAS 300 LÍNEAS DEL BUILD.LOG ═══"
     tail -300 build.log 2>/dev/null || echo "(sin build.log)"
