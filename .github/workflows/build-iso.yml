@@ -26,25 +26,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Liberar espacio: los runners ubuntu-24.04 tienen ~67 GB total,
-      # ~30 GB libres por defecto. El build necesita ~15 GB.
-      - name: Liberar espacio en disco
+      - name: Liberar espacio en disco (agresivo)
         run: |
           echo "ANTES:" && df -h /
           sudo rm -rf \
             /usr/share/dotnet \
+            /usr/share/swift \
             /usr/local/lib/android \
+            /usr/local/.ghcup \
             /opt/ghc \
             /opt/hostedtoolcache \
             /usr/local/share/boost \
-            "$AGENT_TOOLSDIRECTORY" \
-            /usr/share/swift \
-            /usr/local/julia*
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/lib/jvm \
+            "$AGENT_TOOLSDIRECTORY" || true
+          sudo apt-get remove -y --purge \
+            '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' \
+            'php.*' '^mongodb-.*' '^mysql-.*' \
+            azure-cli google-cloud-cli google-chrome-stable \
+            firefox powershell mono-devel libgl1-mesa-dri \
+            'temurin-.*-jdk' 2>/dev/null || true
+          sudo apt-get autoremove -y
           sudo apt-get clean
           sudo docker image prune -af 2>/dev/null || true
+          sudo journalctl --vacuum-size=10M || true
           echo "DESPUÉS:" && df -h /
 
-      - name: Construir ISO dentro de contenedor Debian Bookworm
+      - name: Construir ISO en contenedor Debian Bookworm
         run: |
           chmod +x .github/scripts/build-in-container.sh
           docker run --rm --privileged \
@@ -53,7 +62,8 @@ jobs:
             debian:bookworm \
             bash /workspace/.github/scripts/build-in-container.sh
 
-      - name: Mostrar info de la ISO
+      - name: Información de la ISO
+        if: success()
         run: |
           echo "──────────────────────────────"
           ls -lh build/hydra-os-amd64.iso
@@ -61,7 +71,8 @@ jobs:
           echo "SHA256: $(cat build/hydra-os-amd64.iso.sha256)"
           echo "──────────────────────────────"
 
-      - name: Subir ISO como artefacto descargable
+      - name: Subir ISO como artefacto
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: hydra-os-amd64-iso
@@ -72,15 +83,28 @@ jobs:
           retention-days: 14
           compression-level: 0
 
-      - name: Mostrar log en caso de fallo
+      - name: Subir logs de build (siempre)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build/build.log
+            build/config.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Mostrar log si falla
         if: failure()
         run: |
-          echo "═══ ÚLTIMAS 200 LÍNEAS DEL LOG ═══"
-          tail -200 build/build.log 2>/dev/null || echo "Sin log disponible"
+          echo "═══ build.log (últimas 300 líneas) ═══"
+          tail -300 build/build.log 2>/dev/null || echo "(sin log)"
+          echo ""
+          echo "═══ config.log (completo) ═══"
+          cat build/config.log 2>/dev/null || echo "(sin log)"
 
-      # Solo se ejecuta al crear un tag vX.Y.Z
-      - name: Publicar Release en GitHub
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publicar Release (solo en tag vX.Y.Z)
+        if: success() && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: Hydra OS ${{ github.ref_name }}
@@ -99,17 +123,16 @@ jobs:
             | `hydra-os-amd64.iso` | ISO instalable (UEFI + BIOS) |
             | `hydra-os-amd64.iso.sha256` | Verificación SHA256 |
 
-            ### Verificar integridad
+            ### Verificar
             ```bash
             sha256sum -c hydra-os-amd64.iso.sha256
             ```
 
             ### Instalar
-            1. Quemar ISO en USB ≥8 GB con **Rufus** (Windows) o **Balena Etcher**
-            2. Arrancar PC desde USB (F2/F12/Del en BIOS)
-            3. Probar modo Live o doble-clic en **"Instalar Hydra OS"**
+            1. Quemar ISO en USB ≥8 GB con Rufus o Balena Etcher
+            2. Arrancar PC desde USB
+            3. Doble-clic en "Instalar Hydra OS"
             4. Seguir el asistente Calamares
-            5. Reiniciar y retirar el USB
           files: |
             build/hydra-os-amd64.iso
             build/hydra-os-amd64.iso.sha256

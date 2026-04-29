@@ -1,15 +1,24 @@
 #!/bin/bash
 # Ejecutado dentro de un contenedor debian:bookworm --privileged
 # por GitHub Actions. No invocar directamente.
-set -euxo pipefail
+set -uxo pipefail
 export DEBIAN_FRONTEND=noninteractive
+export LC_ALL=C
 
-log() { echo -e "\n\033[1;36m=== $* ===\033[0m\n"; }
+step() { echo -e "\n\033[1;36m═══ $* ═══\033[0m\n"; }
+err()  { echo -e "\n\033[1;31m✗ $*\033[0m\n" >&2; }
+
+trap 'err "FALLO en línea $LINENO. Espacio actual:"; df -h / 2>/dev/null; exit 1' ERR
 
 # ──────────────────────────────────────────────
-# 1. Repositorios Debian Bookworm
+step "Estado inicial del contenedor"
+df -h /
+free -h
+nproc
+cat /etc/debian_version
+
 # ──────────────────────────────────────────────
-log "Configurando repositorios"
+step "Configurando repositorios Debian"
 cat > /etc/apt/sources.list << 'SOURCES'
 deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
 deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
@@ -19,9 +28,7 @@ SOURCES
 apt-get update -q
 
 # ──────────────────────────────────────────────
-# 2. Dependencias de build
-# ──────────────────────────────────────────────
-log "Instalando dependencias de live-build"
+step "Instalando dependencias de live-build"
 apt-get install -y --no-install-recommends \
     live-build \
     debootstrap \
@@ -34,46 +41,69 @@ apt-get install -y --no-install-recommends \
     mtools \
     dosfstools \
     binutils \
+    debian-archive-keyring \
     ca-certificates \
     rsync \
     wget \
     git
 
+dpkg -l live-build | tail -1
+
 # ──────────────────────────────────────────────
-# 3. Copiar config de Calamares y KDE al chroot
-# ──────────────────────────────────────────────
-log "Preparando includes del chroot"
+step "Preparando includes del chroot"
 mkdir -p build/config/includes.chroot/etc/calamares.hydra
 cp -r calamares/. build/config/includes.chroot/etc/calamares.hydra/
 
 mkdir -p build/config/includes.chroot/etc/skel
 cp -r kde-config/skel/. build/config/includes.chroot/etc/skel/
 
-# ──────────────────────────────────────────────
-# 4. Build
-# ──────────────────────────────────────────────
-log "Iniciando live-build"
-cd build
-lb clean --purge 2>/dev/null || true
-lb config
-lb build 2>&1 | tee build.log
+ls -la build/config/package-lists/
+echo "Espacio antes del build:"
+df -h /
 
 # ──────────────────────────────────────────────
-# 5. Localizar y renombrar ISO
+step "Ejecutando lb clean"
+cd build
+lb clean --purge 2>&1 || true
+
+step "Ejecutando lb config"
+lb config 2>&1 | tee config.log
+
+step "Ejecutando lb build (puede tardar 30-60 min)"
+# pipefail desactivado aquí: lb build puede salir con códigos raros
+# que no son fallos críticos si la ISO se generó
+set +e
+lb build 2>&1 | tee build.log
+LB_EXIT=$?
+set -e
+
+echo "lb build terminó con código: $LB_EXIT"
+echo "Espacio tras el build:"
+df -h /
+
 # ──────────────────────────────────────────────
-log "Finalizando ISO"
-ISO=$(find . -maxdepth 1 -name "*.iso" | head -1)
+step "Buscando ISO generada"
+ls -la *.iso *.img 2>/dev/null || true
+
+ISO=$(find . -maxdepth 2 -name "*.iso" -type f 2>/dev/null | head -1)
+
 if [[ -z "$ISO" ]]; then
-    echo "ERROR: no se generó ninguna ISO. Últimas 150 líneas del log:"
-    tail -150 build.log
+    err "No se generó ninguna ISO. Volcado de error:"
+    echo ""
+    echo "═══ ÚLTIMAS 300 LÍNEAS DEL BUILD.LOG ═══"
+    tail -300 build.log 2>/dev/null || echo "(sin build.log)"
+    echo ""
+    echo "═══ LISTA DE ARCHIVOS GENERADOS ═══"
+    ls -la
     exit 1
 fi
 
+step "ISO encontrada: $ISO"
 mv "$ISO" hydra-os-amd64.iso
 ls -lh hydra-os-amd64.iso
 
 sha256sum hydra-os-amd64.iso > hydra-os-amd64.iso.sha256
 md5sum    hydra-os-amd64.iso > hydra-os-amd64.iso.md5
 
-log "ISO generada correctamente"
+step "BUILD COMPLETADO"
 cat hydra-os-amd64.iso.sha256

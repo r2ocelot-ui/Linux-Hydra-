@@ -1,5 +1,5 @@
 #!/bin/bash
-# live-build auto/config — opciones base del sistema
+# live-build auto/config — configuración mínima y robusta
 set -e
 
 lb config noauto \
@@ -10,9 +10,6 @@ lb config noauto \
     --apt-indices false \
     --apt-recommends true \
     --apt-source-archives false \
-    --bootappend-live "boot=live components quiet splash locale=es_ES.UTF-8 keyboard-layouts=es" \
-    --bootappend-live-failsafe "boot=live components memtest noapic noapm nodma nomce nolapic nomodeset nosmp nosplash vga=normal" \
-    --bootloaders "grub-efi,syslinux" \
     --binary-image iso-hybrid \
     --debian-installer none \
     --image-name "hydra-os-amd64" \
@@ -23,4 +20,5 @@ lb config noauto \
     --memtest none \
     --win32-loader false \
     --zsync false \
+    --bootappend-live "boot=live components quiet splash locale=es_ES.UTF-8 keyboard-layouts=es" \
     "${@}"

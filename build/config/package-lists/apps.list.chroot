@@ -1,17 +1,11 @@
-# Aplicaciones esenciales — todas presentes en Debian Bookworm
+# Aplicaciones esenciales — set mínimo confirmado en Bookworm
 
 # Navegador web
 firefox-esr
 
 # Ofimática
 libreoffice
-libreoffice-kde5
 libreoffice-l10n-es
-libreoffice-help-es
-
-# Correo electrónico
-thunderbird
-thunderbird-l10n-es-es
 
 # Multimedia
 vlc
@@ -19,31 +13,12 @@ mpv
 
 # Imágenes
 gimp
-inkscape
 
-# Comunicación
-telegram-desktop
-
-# PDF y notas
-xournalpp
-
-# Utilidades del sistema
-gnome-disk-utility
-bleachbit
-
-# Compresión y archivos
+# Compresión
 file-roller
 
 # Gestor de contraseñas
 keepassxc
 
-# Escritorio remoto
-remmina
-remmina-plugin-rdp
-remmina-plugin-vnc
-
-# Descarga de torrents
+# Torrents
 transmission-qt
-
-# Terminal multiplex
-tmux

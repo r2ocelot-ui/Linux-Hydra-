@@ -1,17 +1,16 @@
-# KDE Plasma y entorno de escritorio
+# KDE Plasma 5 — set mínimo funcional para Hydra OS v1
+
+# Plasma core
 plasma-desktop
 plasma-workspace
 plasma-nm
 plasma-pa
-plasma-browser-integration
-plasma-disks
-plasma-firewall
-plasma-systemmonitor
-plasma-thunderbolt
-plasma-vault
-plasma-widgets-addons
 
-# KDE core apps
+# Display manager
+sddm
+sddm-theme-breeze
+
+# Apps KDE esenciales
 dolphin
 konsole
 kate
@@ -20,41 +19,20 @@ okular
 gwenview
 spectacle
 kcalc
-kdeconnect
 kwrite
 partitionmanager
-filelight
-sweeper
-kfind
-kcharselect
-kruler
 
-# KDE Plasma addons
-kdeplasma-addons
-kwin-addons
-
-# SDDM (gestor de sesión)
-sddm
-sddm-theme-breeze
-
-# Qt y GTK integración
+# Tema y apariencia (Breeze Dark)
 breeze
 breeze-gtk-theme
 breeze-icon-theme
 kde-config-gtk-style
-qt5-style-kvantum
-qt5-style-kvantum-themes
 
-# Fuentes KDE
-fonts-hack
-fonts-inconsolata
-
-# Kio extras (miniaturas, servicios)
+# KIO extras y miniaturas
 kio-extras
 kdegraphics-thumbnailers
 ffmpegthumbs
 kimageformats
 
-# Herramientas KDE adicionales
+# Búsqueda
 baloo-kf5
-milou

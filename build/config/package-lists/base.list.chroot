@@ -1,23 +1,20 @@
-# Paquetes base del sistema — siempre se instalan en la ISO
+# Paquetes base mínimos pero suficientes para Hydra OS v1
+# Solo paquetes confirmados en Debian Bookworm
 
-# Kernel y firmware
+# Kernel y firmware esencial
 linux-image-amd64
-linux-headers-amd64
-firmware-linux
 firmware-linux-nonfree
 firmware-misc-nonfree
 firmware-iwlwifi
-firmware-atheros
 firmware-realtek
 amd64-microcode
 intel-microcode
 
-# Herramientas básicas del sistema
+# Herramientas básicas
 sudo
 bash-completion
 curl
 wget
-git
 vim
 nano
 htop
@@ -25,22 +22,17 @@ neofetch
 unzip
 zip
 p7zip-full
-tar
 rsync
 inxi
 lshw
 usbutils
 pciutils
-dkms
 
 # Red
 network-manager
-plasma-nm
-net-tools
 openssh-client
-avahi-daemon
 
-# Audio
+# Audio (PipeWire)
 pipewire
 pipewire-pulse
 wireplumber
@@ -54,31 +46,26 @@ blueman
 # Impresoras
 cups
 system-config-printer
-printer-driver-gutenprint
 
 # Fuentes
 fonts-liberation
 fonts-noto
 fonts-noto-color-emoji
 fonts-hack
-ttf-mscorefonts-installer
 
 # Codecs multimedia
-ffmpeg
 gstreamer1.0-plugins-base
 gstreamer1.0-plugins-good
 gstreamer1.0-plugins-bad
 gstreamer1.0-plugins-ugly
 gstreamer1.0-libav
 
-# Instalador live
+# Herramientas de particionado e instalación
+gparted
 calamares
 live-boot
 live-config
 live-config-systemd
 
-# Herramientas de particionado
-gparted
-
-# Agente SPICE (para VMs)
+# Soporte VMs
 spice-vdagent
