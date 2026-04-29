@@ -31,24 +31,44 @@ Linux-Hydra-/
 └── docs/               # Documentación
 ```
 
-## Construir la ISO
+## Descargar la ISO
 
-Requiere Debian Bookworm con `live-build` instalado.
+### Opción 1 — Releases oficiales (recomendado)
+
+Ir a [Releases](https://github.com/r2ocelot-ui/Linux-Hydra-/releases) y
+descargar `hydra-os-amd64.iso` de la última versión.
+
+### Opción 2 — Última build automática
+
+Cada commit en `main` o ramas `claude/*` genera una ISO automáticamente vía
+GitHub Actions. Para descargarla:
+
+1. Ir a la pestaña **Actions** del repositorio
+2. Abrir el último workflow `Build Hydra OS ISO` que esté en verde
+3. Bajar al final y descargar el artefacto `hydra-os-amd64-iso`
+
+### Opción 3 — Construirla localmente
+
+Requiere Debian Bookworm o Ubuntu con `live-build`:
 
 ```bash
-# Instalar dependencias
-sudo apt install live-build calamares debootstrap squashfs-tools xorriso
-
-# Clonar el repositorio
-git clone https://github.com/r2ocelot-ui/linux-hydra-
-cd linux-hydra-
-
-# Construir la ISO (requiere ~10 GB de espacio y conexión a internet)
-cd build
-sudo bash ../scripts/build-iso.sh
+sudo apt install live-build debootstrap squashfs-tools xorriso
+git clone https://github.com/r2ocelot-ui/Linux-Hydra-
+cd Linux-Hydra-
+sudo bash scripts/build-iso.sh
 ```
 
-La ISO resultante quedará en `build/hydra-os-amd64.iso`.
+La ISO resultante queda en `build/hydra-os-amd64.iso` (~3-4 GB).
+
+## Instalar Hydra OS
+
+1. **Quemar la ISO en un USB** (8 GB+):
+   - Windows: [Rufus](https://rufus.ie) — modo GPT/UEFI
+   - Mac/Linux: [Balena Etcher](https://etcher.balena.io) o `dd`
+2. **Arrancar el PC desde el USB** (BIOS/UEFI: F2/F12/Del según fabricante)
+3. **Probar en modo Live** o doble-clic en **"Instalar Hydra OS"**
+4. **Calamares** te guía: idioma → teclado → disco → usuario → instalar
+5. **Reiniciar** y retirar el USB cuando se indique
 
 ## Versión objetivo
 

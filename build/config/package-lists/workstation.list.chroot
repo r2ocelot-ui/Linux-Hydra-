@@ -1,7 +1,7 @@
 # Herramientas de desarrollo y workstation
+# (VSCode, Docker oficial y otros se instalan vía script post-install)
 
-# Entornos de desarrollo
-code
+# Git y control de versiones
 git
 git-lfs
 meld
@@ -26,25 +26,15 @@ pkg-config
 # Bases de datos (clientes)
 sqlite3
 postgresql-client
-mysql-client
-
-# Docker
-docker.io
-docker-compose
+default-mysql-client
 
 # Herramientas de red y análisis
-wireshark
 nmap
 traceroute
 iperf3
 dnsutils
 
-# Diseño y modelado 3D
+# Edición de video / 3D
+kdenlive
 blender
 freecad
-
-# Edición de video
-kdenlive
-
-# Gestión de proyectos
-taskwarrior

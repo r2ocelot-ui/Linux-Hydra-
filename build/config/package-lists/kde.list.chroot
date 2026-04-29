@@ -20,10 +20,8 @@ okular
 gwenview
 spectacle
 kcalc
-krunner
 kdeconnect
 kwrite
-ksysguard
 partitionmanager
 filelight
 sweeper
@@ -34,7 +32,6 @@ kruler
 # KDE Plasma addons
 kdeplasma-addons
 kwin-addons
-kwin-effects-squash
 
 # SDDM (gestor de sesión)
 sddm
@@ -45,7 +42,6 @@ breeze
 breeze-gtk-theme
 breeze-icon-theme
 kde-config-gtk-style
-kde-config-gtk-style-preview
 qt5-style-kvantum
 qt5-style-kvantum-themes
 

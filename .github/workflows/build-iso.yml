@@ -1,0 +1,141 @@
+name: Build Hydra OS ISO
+
+on:
+  push:
+    branches:
+      - main
+      - claude/**
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Publicar como release (requiere tag)'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: build-iso-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ISO (Debian Bookworm + KDE)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free up disk space on runner
+        run: |
+          echo "=== Espacio antes ==="
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune -af || true
+          sudo apt-get clean
+          echo "=== Espacio después ==="
+          df -h /
+
+      - name: Run build inside Debian Bookworm container
+        run: |
+          docker run --rm --privileged \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            debian:bookworm \
+            bash -c '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+
+              echo "=== Configurando repos Debian (main + contrib + non-free + non-free-firmware) ==="
+              cat > /etc/apt/sources.list <<EOF
+              deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+              deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+              deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+              EOF
+
+              echo "=== Instalando dependencias de build ==="
+              apt-get update -q
+              apt-get install -y --no-install-recommends \
+                live-build debootstrap squashfs-tools xorriso \
+                grub-efi-amd64-bin grub-pc-bin syslinux-common isolinux \
+                ca-certificates wget rsync mtools dosfstools
+
+              echo "=== Preparando configuración de Calamares y KDE en chroot ==="
+              mkdir -p build/config/includes.chroot/etc/calamares.hydra
+              cp -r calamares/. build/config/includes.chroot/etc/calamares.hydra/
+
+              mkdir -p build/config/includes.chroot/etc/skel
+              cp -r kde-config/skel/. build/config/includes.chroot/etc/skel/
+
+              echo "=== Construyendo ISO con live-build ==="
+              cd build
+              lb clean --purge
+              lb config
+              lb build 2>&1 | tee build.log
+
+              echo "=== Renombrando ISO ==="
+              if [ -f live-image-amd64.hybrid.iso ]; then
+                mv live-image-amd64.hybrid.iso hydra-os-amd64.iso
+              elif [ -f hydra-os-amd64.hybrid.iso ]; then
+                mv hydra-os-amd64.hybrid.iso hydra-os-amd64.iso
+              fi
+
+              ls -lh *.iso || (echo "ERROR: no se generó ISO"; tail -100 build.log; exit 1)
+
+              echo "=== Generando checksums ==="
+              sha256sum hydra-os-amd64.iso > hydra-os-amd64.iso.sha256
+              md5sum    hydra-os-amd64.iso > hydra-os-amd64.iso.md5
+            '
+
+      - name: Show ISO info
+        run: |
+          ls -lh build/hydra-os-amd64.iso*
+          echo ""
+          echo "SHA256: $(cat build/hydra-os-amd64.iso.sha256)"
+
+      - name: Upload ISO as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydra-os-amd64-iso
+          path: |
+            build/hydra-os-amd64.iso
+            build/hydra-os-amd64.iso.sha256
+            build/hydra-os-amd64.iso.md5
+          retention-days: 14
+          compression-level: 0
+
+      - name: Publish GitHub Release (only on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hydra OS ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            # Hydra OS ${{ github.ref_name }}
+
+            Distribución Linux basada en Debian 12 Bookworm con KDE Plasma.
+
+            ## Descargar
+            - `hydra-os-amd64.iso` — ISO instalable (UEFI + BIOS legacy)
+
+            ## Verificar
+            ```bash
+            sha256sum -c hydra-os-amd64.iso.sha256
+            ```
+
+            ## Instalar
+            1. Quemar ISO en USB con Rufus (Windows), Balena Etcher (Mac/Linux), o `dd`
+            2. Arrancar PC desde USB
+            3. Doble-clic en "Instalar Hydra OS" en el escritorio
+            4. Calamares te guía por la instalación
+          files: |
+            build/hydra-os-amd64.iso
+            build/hydra-os-amd64.iso.sha256
+            build/hydra-os-amd64.iso.md5

@@ -80,6 +80,4 @@ live-config-systemd
 # Virtualización (guest tools)
 open-vm-tools
 open-vm-tools-desktop
-virtualbox-guest-utils
-virtualbox-guest-x11
 spice-vdagent
