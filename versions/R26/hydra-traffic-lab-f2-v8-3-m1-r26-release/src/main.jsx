@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -14,7 +14,7 @@ const HYDRA_SECTION_KEY = "hydraTrafficLab.f2.activeSection";
 const HYDRA_SESSION_KEY = "hydraTrafficLab.f2.session";
 const HYDRA_USERS_KEY = "hydraTrafficLab.f2.users";
 const HYDRA_MAX_RESTORE_POINTS = 10;
-const HYDRA_SECTIONS = ["Inicio", "Mapa del sistema", "Cruces", "Corredores", "Escenarios", "Informes", "Eventos", "Dispositivos", "CÃ¡maras", "ConfiguraciÃ³n", "Usuarios", "Sistema"];
+const HYDRA_SECTIONS = ["Inicio", "Mapa del sistema", "Cruces", "Corredores", "Escenarios", "Informes", "Eventos", "Dispositivos", "Cámaras", "Configuración", "Usuarios", "Sistema"];
 const HYDRA_VERSION_LABEL = "F2-V8.3-M1-R26";
 const HYDRA_VERSION_SLUG = "f2-v8-3-m1-r26-release";
 const DEFAULT_SETTINGS = {
@@ -32,7 +32,7 @@ const HYDRA_PERMISSION_LABELS = {
   viewSystem: "Ver sistema",
   operateCrossings: "Operar cruces",
   changePlans: "Cambiar planes",
-  editGeometry: "Editar geometrÃ­a/fases",
+  editGeometry: "Editar geometría/fases",
   maintainHardware: "Mantenimiento hardware",
   manageUsers: "Administrar usuarios global",
   manageProjectUsers: "Administrar usuarios del proyecto",
@@ -43,56 +43,56 @@ const HYDRA_ROLES = [
     id: "superadmin",
     name: "Superadministrador",
     pin: "9999",
-    description: "Control total del sistema, usuarios, permisos y configuraciÃ³n crÃ­tica.",
+    description: "Control total del sistema, usuarios, permisos y configuración crítica.",
     permissions: ["viewSystem", "operateCrossings", "changePlans", "editGeometry", "maintainHardware", "manageUsers", "manageProjectUsers", "viewReports"],
   },
   {
     id: "admin",
     name: "Administrador de ciudad",
     pin: "1234",
-    description: "GestiÃ³n general de cruces, corredores, planes y configuraciÃ³n.",
+    description: "Gestión general de cruces, corredores, planes y configuración.",
     permissions: ["viewSystem", "operateCrossings", "changePlans", "editGeometry", "maintainHardware", "manageProjectUsers", "viewReports"],
   },
   {
     id: "supervisor",
     name: "Supervisor",
     pin: "4444",
-    description: "SupervisiÃ³n completa y validaciÃ³n operativa sin administraciÃ³n crÃ­tica.",
+    description: "Supervisión completa y validación operativa sin administración crítica.",
     permissions: ["viewSystem", "operateCrossings", "changePlans", "viewReports"],
   },
   {
     id: "operator",
     name: "Operador",
     pin: "2222",
-    description: "Uso diario, eventos, supervisiÃ³n y operaciÃ³n permitida.",
+    description: "Uso diario, eventos, supervisión y operación permitida.",
     permissions: ["viewSystem", "operateCrossings", "viewReports"],
   },
   {
     id: "engineering",
-    name: "IngenierÃ­a",
+    name: "Ingeniería",
     pin: "5555",
-    description: "Fases, geometrÃ­a, grupos semafÃ³ricos, conflictos y coordinaciÃ³n.",
+    description: "Fases, geometría, grupos semafóricos, conflictos y coordinación.",
     permissions: ["viewSystem", "changePlans", "editGeometry", "viewReports"],
   },
   {
     id: "maintenance",
     name: "Mantenimiento",
     pin: "3333",
-    description: "Dispositivos, cÃ¡maras, lazos, Ã³pticas, hardware y diagnÃ³stico.",
+    description: "Dispositivos, cámaras, lazos, ópticas, hardware y diagnóstico.",
     permissions: ["viewSystem", "maintainHardware", "viewReports"],
   },
   {
     id: "viewer",
     name: "Consulta",
     pin: "0000",
-    description: "Solo lectura para informes, eventos e histÃ³rico.",
+    description: "Solo lectura para informes, eventos e histórico.",
     permissions: ["viewSystem", "viewReports"],
   },
   {
     id: "emergency",
     name: "Emergencia",
     pin: "9110",
-    description: "IntervenciÃ³n limitada para situaciones especiales, siempre registrada.",
+    description: "Intervención limitada para situaciones especiales, siempre registrada.",
     permissions: ["viewSystem", "operateCrossings"],
   },
 ];
@@ -298,7 +298,7 @@ function effectivePermissionsForUser(user, projectId, baseRole) {
 function userDisplay(user, role = null) {
   if (!user) return "Sin sesion";
   const roleName = role?.name || getRoleById(user.roleId)?.name || "Rol";
-  return `${user.name} Â· ${roleName}`;
+  return `${user.name} · ${roleName}`;
 }
 
 function canManageTargetUser(manager, managerRole, target, projectId) {
@@ -499,7 +499,7 @@ function saveRestorePoint(label, snapshot) {
     window.localStorage.setItem(HYDRA_RESTORE_KEY, JSON.stringify(next));
     return true;
   } catch (error) {
-    console.warn("No se pudo crear punto de restauraciÃ³n:", error);
+    console.warn("No se pudo crear punto de restauración:", error);
     return false;
   }
 }
@@ -550,7 +550,7 @@ function formatHydraDate(iso) {
   try {
     return new Date(iso).toLocaleString();
   } catch {
-    return "fecha no vÃ¡lida";
+    return "fecha no válida";
   }
 }
 
@@ -564,9 +564,9 @@ function formatHydraTime(iso) {
 }
 
 const GEOMETRY_OPTIONS = [
-  { value: "X", label: "X Â· Varias vÃ­as / intersecciÃ³n completa" },
-  { value: "I", label: "I Â· VÃ­a Ãºnica de doble sentido" },
-  { value: "T", label: "T Â· VÃ­a principal + secundaria lateral" },
+  { value: "X", label: "X · Varias vías / intersección completa" },
+  { value: "I", label: "I · Vía única de doble sentido" },
+  { value: "T", label: "T · Vía principal + secundaria lateral" },
   { value: "ROTONDA", label: "Rotonda / semirotonda" },
   { value: "GIRO_PROTEGIDO", label: "Giro protegido" },
   { value: "PERSONALIZADA", label: "Personalizada" },
@@ -581,7 +581,7 @@ function geometryValue(geometry) {
 
 function geometryDisplayLabel(geometry) {
   const value = geometryValue(geometry);
-  return GEOMETRY_OPTIONS.find((option) => option.value === value)?.label || value || "X Â· Varias vÃ­as / intersecciÃ³n completa";
+  return GEOMETRY_OPTIONS.find((option) => option.value === value)?.label || value || "X · Varias vías / intersección completa";
 }
 
 function geometryLabel(geometry) {
@@ -658,9 +658,9 @@ class RuntimeErrorBoundary extends React.Component {
       return (
         <main className="runtime-error-shell">
           <div className="runtime-error-card">
-            <div className="release-tag">Hydra Traffic Lab Â· diagnÃ³stico de arranque</div>
+            <div className="release-tag">Hydra Traffic Lab · diagnóstico de arranque</div>
             <h1>Error al renderizar la interfaz</h1>
-            <p>La aplicaciÃ³n ha cargado, pero un componente fallÃ³. Copia este mensaje para revisarlo.</p>
+            <p>La aplicación ha cargado, pero un componente falló. Copia este mensaje para revisarlo.</p>
             <pre>{String(this.state.error?.stack || this.state.error?.message || this.state.error)}</pre>
             {this.state.info?.componentStack && <pre>{this.state.info.componentStack}</pre>}
           </div>
@@ -680,17 +680,17 @@ const AMBER = 4;
 const ALL_RED = 3;
 
 const GEOMETRIES = {
-  X: "IntersecciÃ³n en X",
+  X: "Intersección en X",
   T: "Cruce en T",
   PEDESTRIAN: "Paso peatonal",
   ROUNDABOUT: "Rotonda / semirotonda",
   PROTECTED_TURN: "Giro protegido",
-  MAIN_WITH_TURN: "VÃ­a principal + giro compatible",
+  MAIN_WITH_TURN: "Vía principal + giro compatible",
   ACCESS: "Acceso simple",
 };
 
 const GROUP_TYPES = {
-  vehicle: "VehÃ­culos",
+  vehicle: "Vehículos",
   pedestrian: "Peatones",
   bus: "Bus",
   bike: "Bici",
@@ -719,32 +719,32 @@ function defaultMovementKindForType(type) {
 
 const HEAD_TYPES = {
   S11: {
-    label: "S11 Â· maniobra de 1 Ã³ptica",
+    label: "S11 · maniobra de 1 óptica",
     defaultOptics: ["amber"],
-    description: "Tipo S11: una Ã³ptica. Puede usarse como Ã¡mbar/aviso segÃºn la instalaciÃ³n.",
+    description: "Tipo S11: una óptica. Puede usarse como ámbar/aviso según la instalación.",
   },
   S12: {
-    label: "S12 Â· maniobra de 2 Ã³pticas",
+    label: "S12 · maniobra de 2 ópticas",
     defaultOptics: ["amber_1", "amber_2"],
-    description: "Tipo S12: dos Ã³pticas. Normalmente doble Ã¡mbar, pero representa la maniobra de dos luces.",
+    description: "Tipo S12: dos ópticas. Normalmente doble ámbar, pero representa la maniobra de dos luces.",
   },
   S13_RAV: {
-    label: "S13 Â· 3 Ã³pticas R/A/V",
+    label: "S13 · 3 ópticas R/A/V",
     defaultOptics: ["red", "amber", "green"],
-    description: "Tipo S13: tres Ã³pticas configuradas como rojo, Ã¡mbar y verde.",
+    description: "Tipo S13: tres ópticas configuradas como rojo, ámbar y verde.",
   },
   S13_RAA: {
-    label: "S13 Â· 3 Ã³pticas R/A/A",
+    label: "S13 · 3 ópticas R/A/A",
     defaultOptics: ["red", "amber_1", "amber_2"],
-    description: "Tipo S13: tres Ã³pticas configuradas como rojo, Ã¡mbar y Ã¡mbar; Ãºtil para avisos o pasos especiales.",
+    description: "Tipo S13: tres ópticas configuradas como rojo, ámbar y ámbar; útil para avisos o pasos especiales.",
   },
   PED_RG: {
-    label: "PeatÃ³n Â· rojo/verde",
+    label: "Peatón · rojo/verde",
     defaultOptics: ["ped_red", "ped_green"],
-    description: "Maniobra peatonal de dos Ã³pticas.",
+    description: "Maniobra peatonal de dos ópticas.",
   },
   ARROW_RAG: {
-    label: "Flecha Â· rojo/Ã¡mbar/verde",
+    label: "Flecha · rojo/ámbar/verde",
     defaultOptics: ["red_arrow", "amber_arrow", "green_arrow"],
     description: "Maniobra de giro protegido o permitido.",
   },
@@ -803,14 +803,14 @@ function lightColorForOptic(optic) {
 function lightLabel(optic) {
   const labels = {
     red: "Rojo",
-    amber: "Ãmbar",
+    amber: "Ámbar",
     green: "Verde",
-    amber_1: "Ãmbar 1",
-    amber_2: "Ãmbar 2",
+    amber_1: "Ámbar 1",
+    amber_2: "Ámbar 2",
     ped_red: "No pasar",
     ped_green: "Pasar",
     red_arrow: "Rojo flecha",
-    amber_arrow: "Ãmbar flecha",
+    amber_arrow: "Ámbar flecha",
     green_arrow: "Verde flecha",
   };
   return labels[optic] || optic;
@@ -820,11 +820,11 @@ function lightLabel(optic) {
 const OUTPUT_STATES = {
   red: "Rojo",
   green: "Verde",
-  amber: "Ãmbar",
-  amber_1: "Ãmbar aviso",
-  amber_2: "Doble Ã¡mbar",
-  ped_green: "PeatÃ³n verde",
-  ped_red: "PeatÃ³n rojo",
+  amber: "Ámbar",
+  amber_1: "Ámbar aviso",
+  amber_2: "Doble ámbar",
+  ped_green: "Peatón verde",
+  ped_red: "Peatón rojo",
   off: "Apagado",
 };
 
@@ -886,23 +886,23 @@ function phaseOutputs(phase, heads) {
 
 function createIndependentScenarioGeometry() {
   const signalGroups = [
-    makeGroup("M_BAJADA", "VehÃ­culos bajada vÃ­a principal", "vehicle"),
-    makeGroup("M_SUBIDA", "VehÃ­culos subida vÃ­a principal", "vehicle"),
+    makeGroup("M_BAJADA", "Vehículos bajada vía principal", "vehicle"),
+    makeGroup("M_SUBIDA", "Vehículos subida vía principal", "vehicle"),
     makeGroup("G_IZQ_BAJADA", "Giro izquierda bajando", "turn"),
     makeGroup("L_IZQ", "Calle transversal izquierda se incorpora", "vehicle"),
-    makeGroup("P_PRINCIPAL", "Peatones vÃ­a principal", "pedestrian"),
+    makeGroup("P_PRINCIPAL", "Peatones vía principal", "pedestrian"),
     makeGroup("P_LATERAL", "Peatones calle transversal", "pedestrian"),
-    makeGroup("AVISO_PP", "Aviso precauciÃ³n paso peatones", "vehicle"),
+    makeGroup("AVISO_PP", "Aviso precaución paso peatones", "vehicle"),
   ];
 
   const signalHeads = [
-    makeHead("M_BAJADA", "Bajada vÃ­a principal", "M_BAJADA", "vehicle", "S13_RAV"),
-    makeHead("M_SUBIDA", "Subida vÃ­a principal", "M_SUBIDA", "vehicle", "S13_RAV"),
+    makeHead("M_BAJADA", "Bajada vía principal", "M_BAJADA", "vehicle", "S13_RAV"),
+    makeHead("M_SUBIDA", "Subida vía principal", "M_SUBIDA", "vehicle", "S13_RAV"),
     makeHead("M_GIRO_IZQ", "Giro izquierda bajando", "G_IZQ_BAJADA", "turn", "ARROW_RAG"),
     makeHead("M_TRANSVERSAL_IZQ", "Entrada transversal izquierda", "L_IZQ", "vehicle", "S13_RAV"),
-    makeHead("M_P_PRINCIPAL", "PeatÃ³n vÃ­a principal", "P_PRINCIPAL", "pedestrian", "PED_RG"),
-    makeHead("M_P_SECUNDARIA", "PeatÃ³n calle transversal", "P_LATERAL", "pedestrian", "PED_RG"),
-    makeHead("M_AVISO_PP", "Aviso Ã¡mbar/doble Ã¡mbar", "AVISO_PP", "vehicle", "S13_RAA"),
+    makeHead("M_P_PRINCIPAL", "Peatón vía principal", "P_PRINCIPAL", "pedestrian", "PED_RG"),
+    makeHead("M_P_SECUNDARIA", "Peatón calle transversal", "P_LATERAL", "pedestrian", "PED_RG"),
+    makeHead("M_AVISO_PP", "Aviso ámbar/doble ámbar", "AVISO_PP", "vehicle", "S13_RAA"),
   ];
 
   return {
@@ -910,12 +910,12 @@ function createIndependentScenarioGeometry() {
     signalGroups,
     signalHeads,
     controlGroups: [
-      { id: "GV", name: "Grupo vehÃ­culos", members: ["M_BAJADA", "M_SUBIDA", "G_IZQ_BAJADA", "L_IZQ"] },
-      { id: "GV-Principal", name: "VÃ­a principal", members: ["M_BAJADA", "M_SUBIDA"] },
+      { id: "GV", name: "Grupo vehículos", members: ["M_BAJADA", "M_SUBIDA", "G_IZQ_BAJADA", "L_IZQ"] },
+      { id: "GV-Principal", name: "Vía principal", members: ["M_BAJADA", "M_SUBIDA"] },
       { id: "GV-Giro", name: "Giro izquierda bajando", members: ["G_IZQ_BAJADA"] },
       { id: "GV-Transversal", name: "Calle transversal izquierda", members: ["L_IZQ"] },
       { id: "GP", name: "Grupo peatones", members: ["P_PRINCIPAL", "P_LATERAL"] },
-      { id: "AVISO", name: "Avisos Ã¡mbar peatones", members: ["AVISO_PP"] },
+      { id: "AVISO", name: "Avisos ámbar peatones", members: ["AVISO_PP"] },
     ],
     phases: [
       {
@@ -1004,12 +1004,12 @@ function nextManeuverId(heads) {
 function defaultSignalHeadsForGeometry(geometryType, signalGroups) {
   if (geometryType === "MAIN_WITH_TURN" && signalGroups.some((group) => group.id === "S11")) {
     return [
-      makeHead("M11", "Norte hacia vÃ­a principal", "S11", "vehicle", "S13_RAV"),
-      makeHead("M12", "Sur vÃ­a principal", "S12", "vehicle", "S13_RAV"),
+      makeHead("M11", "Norte hacia vía principal", "S11", "vehicle", "S13_RAV"),
+      makeHead("M12", "Sur vía principal", "S12", "vehicle", "S13_RAV"),
       makeHead("M13", "Giro norte izquierda/derecha", "S13", "turn", "ARROW_RAG"),
       makeHead("M14", "Entrada derecha/transversal", "S14", "vehicle", "S13_RAV"),
-      makeHead("M21", "PeatÃ³n norte", "S21", "pedestrian", "PED_RG"),
-      makeHead("M22", "PeatÃ³n sur", "S22", "pedestrian", "PED_RG"),
+      makeHead("M21", "Peatón norte", "S21", "pedestrian", "PED_RG"),
+      makeHead("M22", "Peatón sur", "S22", "pedestrian", "PED_RG"),
     ];
   }
 
@@ -1142,8 +1142,8 @@ function makeGroup(id, name, type = "vehicle") {
 function defaultGroupsForGeometry(geometryType) {
   if (geometryType === "PEDESTRIAN") {
     return [
-      makeGroup("V1", "VehÃ­culos sentido ida", "vehicle"),
-      makeGroup("V2", "VehÃ­culos sentido vuelta", "vehicle"),
+      makeGroup("V1", "Vehículos sentido ida", "vehicle"),
+      makeGroup("V2", "Vehículos sentido vuelta", "vehicle"),
       makeGroup("P1", "Paso peatonal", "pedestrian"),
     ];
   }
@@ -1153,8 +1153,8 @@ function defaultGroupsForGeometry(geometryType) {
       makeGroup("V1", "Avenida principal ida", "vehicle"),
       makeGroup("V2", "Avenida principal vuelta", "vehicle"),
       makeGroup("V3", "Calle transversal", "vehicle"),
-      makeGroup("P1", "PeatÃ³n avenida", "pedestrian"),
-      makeGroup("P2", "PeatÃ³n calle transversal", "pedestrian"),
+      makeGroup("P1", "Peatón avenida", "pedestrian"),
+      makeGroup("P2", "Peatón calle transversal", "pedestrian"),
     ];
   }
 
@@ -1174,31 +1174,31 @@ function defaultGroupsForGeometry(geometryType) {
       makeGroup("V1", "Principal recto", "vehicle"),
       makeGroup("V2", "Opuesto recto", "vehicle"),
       makeGroup("G1", "Giro protegido izquierda", "turn"),
-      makeGroup("P1", "PeatÃ³n cruce principal", "pedestrian"),
+      makeGroup("P1", "Peatón cruce principal", "pedestrian"),
     ];
   }
 
   if (geometryType === "MAIN_WITH_TURN") {
     return [
-      makeGroup("V1", "VÃ­a principal continÃºa", "vehicle"),
-      makeGroup("G1", "Giro desde vÃ­a principal", "turn"),
-      makeGroup("V2", "VÃ­a transversal / transversal cerrada", "vehicle"),
-      makeGroup("P1", "PeatÃ³n cruce principal", "pedestrian"),
-      makeGroup("P2", "PeatÃ³n cruce transversal", "pedestrian"),
+      makeGroup("V1", "Vía principal continúa", "vehicle"),
+      makeGroup("G1", "Giro desde vía principal", "turn"),
+      makeGroup("V2", "Vía transversal / transversal cerrada", "vehicle"),
+      makeGroup("P1", "Peatón cruce principal", "pedestrian"),
+      makeGroup("P2", "Peatón cruce transversal", "pedestrian"),
     ];
   }
 
   if (geometryType === "ACCESS") {
     return [
-      makeGroup("V1", "VÃ­a principal", "vehicle"),
+      makeGroup("V1", "Vía principal", "vehicle"),
       makeGroup("V2", "Acceso transversal", "vehicle"),
       makeGroup("P1", "Paso peatonal", "pedestrian"),
     ];
   }
 
   return [
-    makeGroup("V1", "VehÃ­culos Norte/Sur", "vehicle"),
-    makeGroup("V2", "VehÃ­culos Este/Oeste", "vehicle"),
+    makeGroup("V1", "Vehículos Norte/Sur", "vehicle"),
+    makeGroup("V2", "Vehículos Este/Oeste", "vehicle"),
     makeGroup("P1", "Peatones Norte/Sur", "pedestrian"),
     makeGroup("P2", "Peatones Este/Oeste", "pedestrian"),
   ];
@@ -1211,8 +1211,8 @@ function defaultPhasesForGroups(groups) {
   const secondVehicle = vehicles.slice(Math.ceil(vehicles.length / 2));
 
   const phases = [];
-  if (firstVehicle.length) phases.push({ id: "F1", name: "Fase vehÃ­culos 1", greenGroups: firstVehicle, duration: BASE_GREEN });
-  if (secondVehicle.length) phases.push({ id: "F2", name: "Fase vehÃ­culos 2", greenGroups: secondVehicle, duration: BASE_GREEN });
+  if (firstVehicle.length) phases.push({ id: "F1", name: "Fase vehículos 1", greenGroups: firstVehicle, duration: BASE_GREEN });
+  if (secondVehicle.length) phases.push({ id: "F2", name: "Fase vehículos 2", greenGroups: secondVehicle, duration: BASE_GREEN });
   if (pedestrians.length) phases.push({ id: "F3", name: "Fase peatones", greenGroups: pedestrians, duration: 16 });
 
   return phases.length ? phases : [{ id: "F1", name: "Fase principal", greenGroups: groups.slice(0, 1).map((g) => g.id), duration: BASE_GREEN }];
@@ -1225,8 +1225,8 @@ function defaultConflicts(groups) {
 
   vehicles.forEach((v) => pedestrians.forEach((p) => conflicts.push([v.id, p.id])));
 
-  // Regla dura: en una intersecciÃ³n simple, V1 y V2 representan vÃ­as vehiculares incompatibles
-  // salvo casos especiales como paso peatonal, donde V1/V2 son ambos sentidos de la misma vÃ­a.
+  // Regla dura: en una intersección simple, V1 y V2 representan vías vehiculares incompatibles
+  // salvo casos especiales como paso peatonal, donde V1/V2 son ambos sentidos de la misma vía.
   if (vehicles.some((g) => g.id === "V1") && vehicles.some((g) => g.id === "V2")) {
     conflicts.push(["V1", "V2"]);
   }
@@ -1285,9 +1285,9 @@ function defaultControlGroups(signalGroups) {
   const result = [];
 
   if (vehicles.length) {
-    result.push({ id: "GV", name: "Grupo vehÃ­culos", members: vehicles });
-    if (vehicles[0]) result.push({ id: "GV-Principal", name: "VehÃ­culos principal", members: vehicles.slice(0, Math.min(2, vehicles.length)) });
-    if (turns.length) result.push({ id: "GV-Giro", name: "Giro vehÃ­culos", members: turns });
+    result.push({ id: "GV", name: "Grupo vehículos", members: vehicles });
+    if (vehicles[0]) result.push({ id: "GV-Principal", name: "Vehículos principal", members: vehicles.slice(0, Math.min(2, vehicles.length)) });
+    if (turns.length) result.push({ id: "GV-Giro", name: "Giro vehículos", members: turns });
     const transversals = vehicles.filter((id) => !turns.includes(id)).slice(2);
     if (transversals.length) result.push({ id: "GV-Transversal", name: "Entrada transversal", members: transversals });
   }
@@ -1301,36 +1301,36 @@ function defaultControlGroups(signalGroups) {
 
 function createAvEuropaTurnGeometry() {
   const signalGroups = [
-    makeGroup("S11", "VehÃ­culos norte hacia vÃ­a principal", "vehicle"),
-    makeGroup("S12", "VehÃ­culos sur de la vÃ­a principal", "vehicle"),
+    makeGroup("S11", "Vehículos norte hacia vía principal", "vehicle"),
+    makeGroup("S12", "Vehículos sur de la vía principal", "vehicle"),
     makeGroup("S13", "Giro izquierda/derecha desde norte", "turn"),
-    makeGroup("S14", "Entrada desde vÃ­a derecha/transversal", "vehicle"),
-    makeGroup("S21", "PeatÃ³n lado norte", "pedestrian"),
-    makeGroup("S22", "PeatÃ³n lado sur", "pedestrian"),
+    makeGroup("S14", "Entrada desde vía derecha/transversal", "vehicle"),
+    makeGroup("S21", "Peatón lado norte", "pedestrian"),
+    makeGroup("S22", "Peatón lado sur", "pedestrian"),
   ];
 
   return {
     geometryType: "MAIN_WITH_TURN",
     signalGroups,
     controlGroups: [
-      { id: "GV", name: "Grupo vehÃ­culos", members: ["S11", "S12", "S13", "S14"] },
-      { id: "GV-Principal", name: "VehÃ­culos principal", members: ["S11", "S12"] },
-      { id: "GV-Giro", name: "Giro vehÃ­culos", members: ["S13"] },
+      { id: "GV", name: "Grupo vehículos", members: ["S11", "S12", "S13", "S14"] },
+      { id: "GV-Principal", name: "Vehículos principal", members: ["S11", "S12"] },
+      { id: "GV-Giro", name: "Giro vehículos", members: ["S13"] },
       { id: "GV-Transversal", name: "Entrada transversal", members: ["S14"] },
       { id: "GV-Principal+Giro", name: "Principal + giro compatible", members: ["S11", "S13"] },
       { id: "GP", name: "Grupo peatones", members: ["S21", "S22"] },
     ],
     signalHeads: [
-      makeHead("M11", "Norte hacia vÃ­a principal", "S11", "vehicle", "S13_RAV"),
-      makeHead("M12", "Sur vÃ­a principal", "S12", "vehicle", "S13_RAV"),
+      makeHead("M11", "Norte hacia vía principal", "S11", "vehicle", "S13_RAV"),
+      makeHead("M12", "Sur vía principal", "S12", "vehicle", "S13_RAV"),
       makeHead("M13", "Giro norte izquierda/derecha", "S13", "turn", "ARROW_RAG"),
-      makeHead("M14", "Entrada desde vÃ­a derecha/transversal", "S14", "vehicle", "S13_RAV"),
-      makeHead("M21", "PeatÃ³n lado norte", "S21", "pedestrian", "PED_RG"),
-      makeHead("M22", "PeatÃ³n lado sur", "S22", "pedestrian", "PED_RG"),
+      makeHead("M14", "Entrada desde vía derecha/transversal", "S14", "vehicle", "S13_RAV"),
+      makeHead("M21", "Peatón lado norte", "S21", "pedestrian", "PED_RG"),
+      makeHead("M22", "Peatón lado sur", "S22", "pedestrian", "PED_RG"),
     ],
     phases: [
       { id: "F1", name: "Norte + giro compatible", greenGroups: ["S11", "S13"], duration: 30 },
-      { id: "F2", name: "Sur vÃ­a principal", greenGroups: ["S12"], duration: 22 },
+      { id: "F2", name: "Sur vía principal", greenGroups: ["S12"], duration: 22 },
       { id: "F3", name: "Entrada transversal", greenGroups: ["S14"], duration: 18 },
       { id: "F4", name: "Peatones", greenGroups: ["S21", "S22"], duration: 16 },
     ],
@@ -1356,7 +1356,7 @@ function makeGeometry(geometryType = "X") {
 
   if (geometryType === "PEDESTRIAN") {
     phases = [
-      { id: "F1", name: "VehÃ­culos ambos sentidos", greenGroups: ["V1", "V2"], duration: 28 },
+      { id: "F1", name: "Vehículos ambos sentidos", greenGroups: ["V1", "V2"], duration: 28 },
       { id: "F2", name: "Paso peatonal", greenGroups: ["P1"], duration: 16 },
     ];
     conflicts = conflicts.filter(([a, b]) => !([a, b].includes("V1") && [a, b].includes("V2")));
@@ -1368,8 +1368,8 @@ function makeGeometry(geometryType = "X") {
       { id: "F2", name: "Transversal / acceso", greenGroups: ["V2"], duration: 18 },
       { id: "F3", name: "Peatones", greenGroups: ["P1", "P2"], duration: 16 },
     ];
-    // En esta plantilla V1 y G1 son compatibles: misma vÃ­a principal + giro.
-    // Todo vehÃ­culo o giro queda incompatible con peatones.
+    // En esta plantilla V1 y G1 son compatibles: misma vía principal + giro.
+    // Todo vehículo o giro queda incompatible con peatones.
     conflicts = [
       ["V1", "V2"],
       ["G1", "V2"],
@@ -1446,10 +1446,10 @@ function makeCrossing(id, name, lat, lng, index = 0, geometryType = "X") {
 }
 
 const INITIAL_CROSSINGS = [
-  makeCrossing("A", "Av. MediterrÃ¡neo / Calle Europa", 38.5424, -0.1330, 0, "X"),
-  makeCrossing("B", "Paso peatÃ³n Av. MediterrÃ¡neo", 38.5417, -0.1270, 1, "PEDESTRIAN"),
+  makeCrossing("A", "Av. Mediterráneo / Calle Europa", 38.5424, -0.1330, 0, "X"),
+  makeCrossing("B", "Paso peatón Av. Mediterráneo", 38.5417, -0.1270, 1, "PEDESTRIAN"),
   makeCrossing("C", "Cruce en T Plaza Triangular", 38.5410, -0.1210, 2, "T"),
-  makeCrossing("D", "Av. Europa Â· principal + giro", 38.5402, -0.1150, 3, "MAIN_WITH_TURN"),
+  makeCrossing("D", "Av. Europa · principal + giro", 38.5402, -0.1150, 3, "MAIN_WITH_TURN"),
   makeCrossing("E", "Rotonda semaforizada", 38.5451, -0.1210, 4, "ROUNDABOUT"),
 ];
 
@@ -1499,8 +1499,8 @@ function primaryGroupState(crossing, signal) {
 function decisionReasons(crossing, signal, settings) {
   if (!crossing || !signal) return [];
   const reasons = [];
-  if (crossing.operatorManual) reasons.push("selector fÃ­sico en MANUAL: el PC supervisa y registra");
-  if (crossing.localMode) reasons.push("modo local: usa plan fijo local y se aÃ­sla de la onda verde");
+  if (crossing.operatorManual) reasons.push("selector físico en MANUAL: el PC supervisa y registra");
+  if (crossing.localMode) reasons.push("modo local: usa plan fijo local y se aísla de la onda verde");
   if (!settings.adaptive) reasons.push("adaptativo desactivado: se respetan duraciones programadas");
   if (settings.loopsEnabled) {
     if (crossing.queues.NS >= 1 || crossing.queues.EW >= 1) reasons.push("lazos virtuales detectan demanda");
@@ -1509,8 +1509,8 @@ function decisionReasons(crossing, signal, settings) {
   }
   if (settings.cameraEnabled) {
     const activeCameras = crossing.cameras.filter((camera) => camera.enabled && camera.ok);
-    if (activeCameras.length) reasons.push(`${activeCameras.length} cÃ¡mara(s) aportan estimaciÃ³n de cola`);
-    if (activeCameras.some((camera) => camera.blockedExit)) reasons.push("cÃ¡mara detecta salida saturada: se limita el verde");
+    if (activeCameras.length) reasons.push(`${activeCameras.length} cámara(s) aportan estimación de cola`);
+    if (activeCameras.some((camera) => camera.blockedExit)) reasons.push("cámara detecta salida saturada: se limita el verde");
   }
   if (signal.safetyFiltered) reasons.push("seguridad activa: se han bloqueado grupos incompatibles");
   if (!reasons.length) reasons.push("demanda equilibrada y fase compatible");
@@ -1536,8 +1536,8 @@ function demandFactor(crossing) {
 }
 
 function effectivePhaseDuration(crossing, phase, settings) {
-  // Si el cruce estÃ¡ coordinado, mantiene el plan base para que el ciclo sea estable.
-  // La adaptaciÃ³n no debe romper la sincronizaciÃ³n del corredor.
+  // Si el cruce está coordinado, mantiene el plan base para que el ciclo sea estable.
+  // La adaptación no debe romper la sincronización del corredor.
   if (crossing.operatorManual || !settings.adaptive || (settings.linkedMode && crossing.linked)) return phase.duration;
 
   const demand = demandFactor(crossing);
@@ -1561,8 +1561,8 @@ function getSignal(crossing, tick, settings) {
   const phases = crossing.geometry.phases.length ? crossing.geometry.phases : defaultPhasesForGroups(crossing.geometry.signalGroups);
   const phaseDurations = phases.map((phase) => effectivePhaseDuration(crossing, phase, settings));
   const cycle = phaseDurations.reduce((sum, duration) => sum + duration + AMBER + ALL_RED, 0);
-  // La coordinaciÃ³n de tiempos es independiente de que el cruce estÃ© en plan local o remoto.
-  // Solo el modo manual/persona lo aÃ­sla.
+  // La coordinación de tiempos es independiente de que el cruce esté en plan local o remoto.
+  // Solo el modo manual/persona lo aísla.
   const offset = settings.linkedMode && crossing.linked && !crossing.operatorManual ? crossing.offset : 0;
   const localTick = ((tick + offset) % cycle + cycle) % cycle;
 
@@ -1690,7 +1690,7 @@ function healthLevel(hardware) {
 }
 
 function healthText(level) {
-  if (level === "fault") return "AVERÃA";
+  if (level === "fault") return "AVERÍA";
   if (level === "warning") return "AVISO";
   return "OK";
 }
@@ -1704,20 +1704,20 @@ function healthClass(level) {
 
 function phaseExplanation(crossing, signal) {
   if (crossing.geometry.geometryType === "MAIN_WITH_TURN" && signal.activePhase?.id === "F1" && signal.stage === "green") {
-    return "VÃ­a principal abierta + giro compatible; transversal y peatones en rojo.";
+    return "Vía principal abierta + giro compatible; transversal y peatones en rojo.";
   }
   if (crossing.geometry.geometryType === "MAIN_WITH_TURN" && signal.activePhase?.id === "F2" && signal.stage === "green") {
-    return "Transversal/acceso abierto; vÃ­a principal, giro y peatones en rojo.";
+    return "Transversal/acceso abierto; vía principal, giro y peatones en rojo.";
   }
   if (crossing.geometry.geometryType === "MAIN_WITH_TURN" && signal.activePhase?.id === "F3" && signal.stage === "green") {
-    return "Fase peatonal; todos los vehÃ­culos y giros en rojo.";
+    return "Fase peatonal; todos los vehículos y giros en rojo.";
   }
   return "";
 }
 
 function stageName(stage) {
   if (stage === "green") return "Verde";
-  if (stage === "amber") return "Ãmbar";
+  if (stage === "amber") return "Ámbar";
   return "Todo rojo";
 }
 
@@ -1731,17 +1731,17 @@ function validateSystem(crossings, manualLinks, corridorIds, signals, settings) 
   const issues = [];
 
   if (crossings.length === 0) {
-    issues.push({ level: "info", text: "No hay cruces en el mapa. AÃ±ade uno para iniciar programaciÃ³n." });
+    issues.push({ level: "info", text: "No hay cruces en el mapa. Añade uno para iniciar programación." });
   }
 
   crossings.forEach((crossing) => {
-    if (!crossing.name.trim()) issues.push({ level: "error", text: `${crossing.id}: nombre vacÃ­o.` });
+    if (!crossing.name.trim()) issues.push({ level: "error", text: `${crossing.id}: nombre vacío.` });
     if (!crossing.geometry.signalGroups.length) issues.push({ level: "error", text: `${crossing.id}: sin grupos luminosos.` });
     if (!crossing.geometry.phases.length) issues.push({ level: "error", text: `${crossing.id}: sin fases.` });
 
     crossing.geometry.phases.forEach((phase) => {
       if (!phase.greenGroups.length) issues.push({ level: "warning", text: `${crossing.id}/${phase.id}: fase sin grupos en verde.` });
-      if (hasConflict(crossing, phase.greenGroups)) issues.push({ level: "warning", text: `${crossing.id}/${phase.id}: fase contiene grupos incompatibles; el motor los bloquearÃ¡.` });
+      if (hasConflict(crossing, phase.greenGroups)) issues.push({ level: "warning", text: `${crossing.id}/${phase.id}: fase contiene grupos incompatibles; el motor los bloqueará.` });
       phase.greenGroups.forEach((groupId) => {
         if (!crossing.geometry.signalGroups.some((group) => group.id === groupId)) issues.push({ level: "error", text: `${crossing.id}/${phase.id}: grupo ${groupId} no existe.` });
       });
@@ -1750,7 +1750,7 @@ function validateSystem(crossings, manualLinks, corridorIds, signals, settings) 
     const groupsUsed = new Set(crossing.geometry.phases.flatMap((phase) => phase.greenGroups));
     crossing.geometry.signalGroups.forEach((group) => {
       if (!groupsUsed.has(group.id)) issues.push({ level: "warning", text: `${crossing.id}: grupo ${group.id} no aparece en ninguna fase.` });
-      if (!group.optics?.length) issues.push({ level: "error", text: `${crossing.id}: grupo ${group.id} no tiene Ã³pticas.` });
+      if (!group.optics?.length) issues.push({ level: "error", text: `${crossing.id}: grupo ${group.id} no tiene ópticas.` });
     });
 
     if (crossing.geometry.geometryType === "PEDESTRIAN") {
@@ -1764,30 +1764,30 @@ function validateSystem(crossings, manualLinks, corridorIds, signals, settings) 
       issues.push({ level: "warning", text: `${crossing.id}: cruce manual/local sigue en corredor; se recomienda aislarlo.` });
     }
     if (crossing.localMode && crossing.linked) {
-      issues.push({ level: "warning", text: `${crossing.id}: modo local con vinculaciÃ³n activa.` });
+      issues.push({ level: "warning", text: `${crossing.id}: modo local con vinculación activa.` });
     }
 
     const signal = signals[crossing.id];
     if (signal?.safetyFiltered) issues.push({ level: "warning", text: `${crossing.id}: seguridad activa filtrando verdes incompatibles.` });
-    if (signal && unsafeVehicleGreen(crossing, signal)) issues.push({ level: "error", text: `${crossing.id}: verde vehicular simultÃ¡neo N/S y E/O detectado.` });
+    if (signal && unsafeVehicleGreen(crossing, signal)) issues.push({ level: "error", text: `${crossing.id}: verde vehicular simultáneo N/S y E/O detectado.` });
 
-    if (!crossing.hardware.ioModuleOk) issues.push({ level: "error", text: `${crossing.id}: mÃ³dulo E/S en fallo.` });
+    if (!crossing.hardware.ioModuleOk) issues.push({ level: "error", text: `${crossing.id}: módulo E/S en fallo.` });
     if (!crossing.hardware.loopDetectorOk) issues.push({ level: "warning", text: `${crossing.id}: detector de lazos en fallo.` });
-    if (!crossing.hardware.cameraOk) issues.push({ level: "warning", text: `${crossing.id}: subsistema de cÃ¡mara en fallo.` });
-    if (Object.keys(crossing.hardware.opticFaults).length) issues.push({ level: "error", text: `${crossing.id}: Ã³pticas con averÃ­a/sin consumo.` });
+    if (!crossing.hardware.cameraOk) issues.push({ level: "warning", text: `${crossing.id}: subsistema de cámara en fallo.` });
+    if (Object.keys(crossing.hardware.opticFaults).length) issues.push({ level: "error", text: `${crossing.id}: ópticas con avería/sin consumo.` });
     crossing.cameras.forEach((camera) => {
-      if (!camera.direction) issues.push({ level: "warning", text: `${crossing.id}/${camera.id}: cÃ¡mara sin direcciÃ³n.` });
-      if (camera.enabled && !camera.ok) issues.push({ level: "warning", text: `${crossing.id}: cÃ¡mara activa ${camera.id} estÃ¡ en fallo.` });
+      if (!camera.direction) issues.push({ level: "warning", text: `${crossing.id}/${camera.id}: cámara sin dirección.` });
+      if (camera.enabled && !camera.ok) issues.push({ level: "warning", text: `${crossing.id}: cámara activa ${camera.id} está en fallo.` });
     });
 
     if (!settings.loopsEnabled && (crossing.queues.NS > 0 || crossing.queues.EW > 0)) {
-      issues.push({ level: "info", text: `${crossing.id}: hay colas, pero los lazos estÃ¡n desactivados globalmente.` });
+      issues.push({ level: "info", text: `${crossing.id}: hay colas, pero los lazos están desactivados globalmente.` });
     }
   });
 
   manualLinks.forEach((link) => {
     if (!crossings.some((c) => c.id === link.from) || !crossings.some((c) => c.id === link.to)) {
-      issues.push({ level: "error", text: `Enlace invÃ¡lido ${link.from} â†’ ${link.to}.` });
+      issues.push({ level: "error", text: `Enlace inválido ${link.from} → ${link.to}.` });
     }
   });
 
@@ -1795,17 +1795,17 @@ function validateSystem(crossings, manualLinks, corridorIds, signals, settings) 
     if (!crossings.some((c) => c.id === id)) issues.push({ level: "error", text: `Corredor contiene cruce inexistente ${id}.` });
   });
 
-  if (!settings.linkedMode) issues.push({ level: "info", text: "CoordinaciÃ³n global desactivada." });
-  if (!settings.cameraEnabled) issues.push({ level: "info", text: "CÃ¡maras desactivadas en cÃ¡lculo adaptativo." });
+  if (!settings.linkedMode) issues.push({ level: "info", text: "Coordinación global desactivada." });
+  if (!settings.cameraEnabled) issues.push({ level: "info", text: "Cámaras desactivadas en cálculo adaptativo." });
 
   return issues;
 }
 
 
-function safeAction(fn, label = "acciÃ³n") {
+function safeAction(fn, label = "acción") {
   return () => {
     if (typeof fn === "function") return fn();
-    console.warn(`AcciÃ³n no disponible: ${label}`);
+    console.warn(`Acción no disponible: ${label}`);
     return undefined;
   };
 }
@@ -1922,7 +1922,7 @@ function unsafeVehicleGreen(crossing, signal) {
     .filter((group) => group.type !== "pedestrian" && signal.groupStates[group.id] === "green")
     .map((group) => group.id);
 
-  // Plantilla especial: la vÃ­a principal puede ir en verde junto al giro.
+  // Plantilla especial: la vía principal puede ir en verde junto al giro.
   // Lo que no puede ocurrir es mezclar eso con la transversal V2.
   if (crossing.geometry.geometryType === "MAIN_WITH_TURN") {
     const mainOrTurnGreen = greenNonPed.includes("V1") || greenNonPed.includes("G1");
@@ -1957,35 +1957,35 @@ function markerStateColor(state) {
 }
 
 function markerGroupIcon(type) {
-  if (type === "pedestrian") return "ðŸš¶";
-  if (type === "bus") return "ðŸšŒ";
-  if (type === "bike") return "ðŸš²";
-  if (type === "turn") return "â†°";
-  return "ðŸš—";
+  if (type === "pedestrian") return "🚶";
+  if (type === "bus") return "🚌";
+  if (type === "bike") return "🚲";
+  if (type === "turn") return "↰";
+  return "🚗";
 }
 
 function markerGeometryIcon(type) {
-  if (type === "PEDESTRIAN") return "ðŸš¶";
-  if (type === "T") return "â”¬";
-  if (type === "ROUNDABOUT") return "â­•";
-  if (type === "PROTECTED_TURN") return "â†°";
-  if (type === "MAIN_WITH_TURN") return "â†±";
-  if (type === "ACCESS") return "â†”";
-  return "âœ•";
+  if (type === "PEDESTRIAN") return "🚶";
+  if (type === "T") return "┬";
+  if (type === "ROUNDABOUT") return "⭕";
+  if (type === "PROTECTED_TURN") return "↰";
+  if (type === "MAIN_WITH_TURN") return "↱";
+  if (type === "ACCESS") return "↔";
+  return "✕";
 }
 
 function markerModeIcon(crossing) {
-  if (crossing.operatorManual) return "ðŸ–";
-  if (crossing.localMode) return "ðŸ ";
-  if (crossing.linked) return "ðŸ”—";
-  return "â—‹";
+  if (crossing.operatorManual) return "🖐";
+  if (crossing.localMode) return "🏠";
+  if (crossing.linked) return "🔗";
+  return "○";
 }
 
 function markerHealthIcon(crossing) {
   const level = healthLevel(crossing.hardware);
-  if (level === "fault") return "â›”";
-  if (level === "warning") return "âš ";
-  return "âœ“";
+  if (level === "fault") return "⛔";
+  if (level === "warning") return "⚠";
+  return "✓";
 }
 
 function markerIcon(crossing, signal, selected, inCorridor, order, linkMode, linkStartId) {
@@ -2000,8 +2000,8 @@ function markerIcon(crossing, signal, selected, inCorridor, order, linkMode, lin
 
   const bg = selected ? "rgba(16,185,129,.96)" : "rgba(2,6,23,.94)";
   const route = inCorridor ? `<span style="position:absolute;right:-7px;top:-7px;background:#34d399;color:#020617;border-radius:999px;padding:2px 6px;font-size:10px;font-weight:900;border:1px solid rgba(2,6,23,.8)">#${order + 1}</span>` : "";
-  const mode = crossing.operatorManual ? "ðŸ–" : crossing.localMode ? "ðŸ " : crossing.linked ? "ðŸ”—" : "â—‹";
-  const fault = opticsConflict(crossing, signal) ? "âš " : level === "fault" ? "â›”" : level === "warning" ? "âš " : "";
+  const mode = crossing.operatorManual ? "🖐" : crossing.localMode ? "🏠" : crossing.linked ? "🔗" : "○";
+  const fault = opticsConflict(crossing, signal) ? "⚠" : level === "fault" ? "⛔" : level === "warning" ? "⚠" : "";
   const geom = markerGeometryIcon(crossing.geometry.geometryType);
 
   const lamps = crossing.geometry.signalGroups.slice(0, 6).map((group) => {
@@ -2009,14 +2009,14 @@ function markerIcon(crossing, signal, selected, inCorridor, order, linkMode, lin
     const color = markerStateColor(state);
     const icon = markerGroupIcon(group.type);
     return `
-      <div title="${group.id} Â· ${group.name}" style="display:flex;align-items:center;gap:2px;height:17px">
+      <div title="${group.id} · ${group.name}" style="display:flex;align-items:center;gap:2px;height:17px">
         <span style="font-size:13px;line-height:1">${icon}</span>
         <span style="width:8px;height:8px;border-radius:50%;background:${color};box-shadow:0 0 7px ${color};display:inline-block"></span>
       </div>`;
   }).join("");
 
   const extra = crossing.geometry.signalGroups.length > 6 ? `<span style="font-size:9px;color:#94a3b8">+${crossing.geometry.signalGroups.length - 6}</span>` : "";
-  const title = `${crossing.id} Â· ${crossing.name} Â· ${GEOMETRIES[crossing.geometry.geometryType]}`;
+  const title = `${crossing.id} · ${crossing.name} · ${GEOMETRIES[crossing.geometry.geometryType]}`;
 
   const html = `
     <div title="${title}" style="
@@ -2072,7 +2072,7 @@ function LeafletMapView({
       <div className="panel-header">
         <div>
           <h2>Mapa operativo</h2>
-          <p>Minimapa limpio: iconos de semÃ¡foro/peatÃ³n con lÃ¡mparas de color, sin tarjetas grandes.</p>
+          <p>Minimapa limpio: iconos de semáforo/peatón con lámparas de color, sin tarjetas grandes.</p>
         </div>
         <span className="tag">{crossings.length} cruce(s)</span>
       </div>
@@ -2119,9 +2119,9 @@ function LeafletMapView({
                     Tipo: {GEOMETRIES[crossing.geometry.geometryType]}<br />
                     Grupos: {crossing.geometry.signalGroups.length}<br />
                     Fases: {crossing.geometry.phases.length}<br />
-                    CÃ¡maras: {crossing.cameras.length}<br />
+                    Cámaras: {crossing.cameras.length}<br />
                     <button onClick={() => onToggleCorridor(crossing.id)} style={{ marginTop: 8, padding: "6px 10px" }}>
-                      {inCorridor ? "Quitar corredor" : "AÃ±adir corredor"}
+                      {inCorridor ? "Quitar corredor" : "Añadir corredor"}
                     </button>
                   </div>
                 </Popup>
@@ -2196,7 +2196,7 @@ function ControlPanel({
       <div className="wide-panel-header">
         <div>
           <h2>Control del cruce</h2>
-          <p>{selected.id} Â· {selected.name}</p>
+          <p>{selected.id} · {selected.name}</p>
         </div>
         <span className="tag">{selected.operatorManual ? "Manual" : selected.localMode ? "Local" : selected.linked ? "Auto vinculado" : "Auto"}</span>
       </div>
@@ -2204,8 +2204,8 @@ function ControlPanel({
       <div className="crossing-control-wide-grid">
         <section className="wide-control-card identity-card compact-identity-card">
         <div className="identity-card-title-row">
-          <h3>IdentificaciÃ³n</h3>
-          <button type="button" className="info-mini-button identity-info-button" onClick={() => setShowTechnicalInfo((value) => !value)} title="InformaciÃ³n del ID tÃ©cnico">?</button>
+          <h3>Identificación</h3>
+          <button type="button" className="info-mini-button identity-info-button" onClick={() => setShowTechnicalInfo((value) => !value)} title="Información del ID técnico">?</button>
         </div>
 
         <div className="identity-clean-grid">
@@ -2218,7 +2218,7 @@ function ControlPanel({
           </label>
 
           <label className="compact-field">
-            <span>GeometrÃ­a</span>
+            <span>Geometría</span>
             <select value={geometryValue(selected.geometry)} onChange={(event) => onUpdateSelected("geometry", event.target.value)}>
               {GEOMETRY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -2231,7 +2231,7 @@ function ControlPanel({
             <input
               value={idDraft}
               onFocus={(event) => event.currentTarget.select()}
-              title="Puedes borrar el campo para escribir desde cero. Si sales vacÃ­o, se conserva el ID anterior."
+              title="Puedes borrar el campo para escribir desde cero. Si sales vacío, se conserva el ID anterior."
               onChange={(event) => {
                 setIdDraft(sanitizeCrossingIdDraft(event.target.value));
               }}
@@ -2253,23 +2253,23 @@ function ControlPanel({
 
         {showTechnicalInfo && (
           <div className="info-popover identity-info-popover">
-            <button type="button" className="info-popover-close" onClick={() => setShowTechnicalInfo(false)}>Ã—</button>
-            <strong>InformaciÃ³n del ID tÃ©cnico</strong>
-            <p>El nombre identifica el cruce para el usuario. La geometrÃ­a define el tipo de cruce: X para varias vÃ­as, I para vÃ­a Ãºnica de doble sentido, T para vÃ­a principal con secundaria lateral, rotonda o giro protegido. El ID del cruce sirve como referencia interna para guardado, enlaces, sincronizaciÃ³n y exportaciÃ³n.</p>
+            <button type="button" className="info-popover-close" onClick={() => setShowTechnicalInfo(false)}>×</button>
+            <strong>Información del ID técnico</strong>
+            <p>El nombre identifica el cruce para el usuario. La geometría define el tipo de cruce: X para varias vías, I para vía única de doble sentido, T para vía principal con secundaria lateral, rotonda o giro protegido. El ID del cruce sirve como referencia interna para guardado, enlaces, sincronización y exportación.</p>
           </div>
         )}
       </section>
 
         <section className="wide-control-card operation-card help-card">
           <div className="help-card-title-row">
-            <h3>OperaciÃ³n</h3>
-            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowOperationInfo((value) => !value)} title="InformaciÃ³n de OperaciÃ³n">?</button>
+            <h3>Operación</h3>
+            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowOperationInfo((value) => !value)} title="Información de Operación">?</button>
           </div>
           {showOperationInfo && (
             <div className="info-popover control-info-popover">
-              <button type="button" className="info-popover-close" onClick={() => setShowOperationInfo(false)}>Ã—</button>
-              <strong>OperaciÃ³n</strong>
-              <p>Gestiona el modo de trabajo del cruce: manual por persona, automÃ¡tico, pertenencia al corredor y desfase/offset para sincronizaciÃ³n.</p>
+              <button type="button" className="info-popover-close" onClick={() => setShowOperationInfo(false)}>×</button>
+              <strong>Operación</strong>
+              <p>Gestiona el modo de trabajo del cruce: manual por persona, automático, pertenencia al corredor y desfase/offset para sincronización.</p>
             </div>
           )}
           <div className="button-grid compact-wide-buttons">
@@ -2277,7 +2277,7 @@ function ControlPanel({
               {selected.operatorManual ? "Volver AUTO" : "Manual persona"}
             </Button>
             <Button onClick={() => onToggleCorridor(selected.id)}>
-              {inCorridor ? "Quitar corredor" : "AÃ±adir corredor"}
+              {inCorridor ? "Quitar corredor" : "Añadir corredor"}
             </Button>
           </div>
           <label className="field">
@@ -2289,13 +2289,13 @@ function ControlPanel({
         <section className="wide-control-card link-card compact-link-card help-card">
           <div className="help-card-title-row">
             <h3>Unir cruces manualmente</h3>
-            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowLinkInfo((value) => !value)} title="InformaciÃ³n de Unir cruces">?</button>
+            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowLinkInfo((value) => !value)} title="Información de Unir cruces">?</button>
           </div>
           {showLinkInfo && (
             <div className="info-popover control-info-popover">
-              <button type="button" className="info-popover-close" onClick={() => setShowLinkInfo(false)}>Ã—</button>
+              <button type="button" className="info-popover-close" onClick={() => setShowLinkInfo(false)}>×</button>
               <strong>Unir cruces manualmente</strong>
-              <p>Activa el modo de uniÃ³n y pulsa dos cruces del mapa para crear o quitar un enlace directo. Cancelar limpia la selecciÃ³n y Borrar enlaces elimina los enlaces manuales.</p>
+              <p>Activa el modo de unión y pulsa dos cruces del mapa para crear o quitar un enlace directo. Cancelar limpia la selección y Borrar enlaces elimina los enlaces manuales.</p>
             </div>
           )}
           <div className="button-grid compact-wide-buttons compact-link-actions">
@@ -2317,19 +2317,19 @@ function ControlPanel({
 
         <section className="wide-control-card view-card help-card">
           <div className="help-card-title-row">
-            <h3>Vista y cÃ¡lculo</h3>
-            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowViewInfo((value) => !value)} title="InformaciÃ³n de Vista y cÃ¡lculo">?</button>
+            <h3>Vista y cálculo</h3>
+            <button type="button" className="info-mini-button help-info-button" onClick={() => setShowViewInfo((value) => !value)} title="Información de Vista y cálculo">?</button>
           </div>
           {showViewInfo && (
             <div className="info-popover control-info-popover view-info-popover">
-              <button type="button" className="info-popover-close" onClick={() => setShowViewInfo(false)}>Ã—</button>
-              <strong>Vista y cÃ¡lculo</strong>
+              <button type="button" className="info-popover-close" onClick={() => setShowViewInfo(false)}>×</button>
+              <strong>Vista y cálculo</strong>
               <ul>
-                <li><b>Control adaptativo:</b> ajusta verdes segÃºn demanda.</li>
-                <li><b>CoordinaciÃ³n activa:</b> usa offsets y corredor.</li>
-                <li><b>TrÃ¡fico automÃ¡tico:</b> genera flujo simulado.</li>
+                <li><b>Control adaptativo:</b> ajusta verdes según demanda.</li>
+                <li><b>Coordinación activa:</b> usa offsets y corredor.</li>
+                <li><b>Tráfico automático:</b> genera flujo simulado.</li>
                 <li><b>Lazos virtuales:</b> usa detectores de parada, medio y largo.</li>
-                <li><b>CÃ¡maras en cÃ¡lculo:</b> considera cola/visiÃ³n simulada.</li>
+                <li><b>Cámaras en cálculo:</b> considera cola/visión simulada.</li>
                 <li><b>Ver corredor:</b> muestra la ruta sincronizada.</li>
                 <li><b>Ver enlaces manuales:</b> muestra uniones creadas.</li>
               </ul>
@@ -2337,10 +2337,10 @@ function ControlPanel({
           )}
           <div className="checks compact-wide-checks">
             <Check label="Control adaptativo" value={settings.adaptive} set={(value) => setSettings((old) => ({ ...old, adaptive: value }))} />
-            <Check label="CoordinaciÃ³n activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
-            <Check label="TrÃ¡fico automÃ¡tico" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
+            <Check label="Coordinación activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
+            <Check label="Tráfico automático" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
             <Check label="Lazos virtuales" value={settings.loopsEnabled} set={(value) => setSettings((old) => ({ ...old, loopsEnabled: value }))} />
-            <Check label="CÃ¡maras en cÃ¡lculo" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
+            <Check label="Cámaras en cálculo" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
             <Check label="Ver corredor" value={settings.showCorridor} set={(value) => setSettings((old) => ({ ...old, showCorridor: value }))} />
             <Check label="Ver enlaces manuales" value={settings.showManualLinks} set={(value) => setSettings((old) => ({ ...old, showManualLinks: value }))} />
           </div>
@@ -2351,7 +2351,7 @@ function ControlPanel({
 }
 
 function GlobalSettingsPanel({ settings, setSettings, selected, onFaultMode, onSafeStep, onClearActiveQueue, onSetRegulatorMode, onSetLocalMode }) {
-  const status = selected.operatorManual ? "Manual persona" : selected.localMode ? "AutomÃ¡tico local" : "AutomÃ¡tico remoto";
+  const status = selected.operatorManual ? "Manual persona" : selected.localMode ? "Automático local" : "Automático remoto";
 
   return (
     <Panel className="regulator-control-panel">
@@ -2367,12 +2367,12 @@ function GlobalSettingsPanel({ settings, setSettings, selected, onFaultMode, onS
         <div className="control-block global-settings-block">
           <h3>Ajustes globales</h3>
           <div className="checks compact-checks">
-            <Check label="CoordinaciÃ³n activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
+            <Check label="Coordinación activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
             <Check label="Manual asistido" value={settings.manualAssist} set={(value) => setSettings((old) => ({ ...old, manualAssist: value }))} />
             <Check label="Control adaptativo" value={settings.adaptive} set={(value) => setSettings((old) => ({ ...old, adaptive: value }))} />
             <Check label="Lazos virtuales" value={settings.loopsEnabled} set={(value) => setSettings((old) => ({ ...old, loopsEnabled: value }))} />
-            <Check label="CÃ¡mara virtual" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
-            <Check label="Llegadas automÃ¡ticas" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
+            <Check label="Cámara virtual" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
+            <Check label="Llegadas automáticas" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
           </div>
 
           <label className="field compact-discharge">
@@ -2385,8 +2385,8 @@ function GlobalSettingsPanel({ settings, setSettings, selected, onFaultMode, onS
           <div className="control-block control-mini-card">
             <h3>Selector del regulador</h3>
             <div className="button-grid compact-buttons">
-              <Button onClick={() => onSetRegulatorMode(selected.id, false)}>AutomÃ¡tico remoto</Button>
-              <Button onClick={() => onSetLocalMode(selected.id, true)} variant="secondary">AutomÃ¡tico local</Button>
+              <Button onClick={() => onSetRegulatorMode(selected.id, false)}>Automático remoto</Button>
+              <Button onClick={() => onSetLocalMode(selected.id, true)} variant="secondary">Automático local</Button>
               <Button onClick={() => onSetRegulatorMode(selected.id, true)} variant="danger">Manual persona</Button>
               <Button onClick={() => onSetLocalMode(selected.id, false)} variant="warning">Salir local</Button>
             </div>
@@ -2394,13 +2394,13 @@ function GlobalSettingsPanel({ settings, setSettings, selected, onFaultMode, onS
           </div>
 
           <div className="control-block control-mini-card">
-            <h3>IntervenciÃ³n rÃ¡pida</h3>
+            <h3>Intervención rápida</h3>
             <div className="button-grid compact-buttons">
               <Button onClick={onSafeStep} variant="warning" disabled={!settings.manualAssist}>Avanzar etapa segura</Button>
               <Button onClick={onClearActiveQueue} variant="secondary" disabled={!settings.manualAssist}>Priorizar cola activa</Button>
-              <Button onClick={onFaultMode} variant="danger">AverÃ­a local</Button>
+              <Button onClick={onFaultMode} variant="danger">Avería local</Button>
             </div>
-            <p className="muted">Acciones rÃ¡pidas con secuencia segura: verde â†’ Ã¡mbar â†’ todo rojo.</p>
+            <p className="muted">Acciones rápidas con secuencia segura: verde → ámbar → todo rojo.</p>
           </div>
         </div>
       </div>
@@ -2422,22 +2422,22 @@ function TrafficDemandPanel({ selected, onVehicle, onPedestrian, onArrivalRate, 
   return (
     <Panel className="traffic-summary-panel traffic-help-panel">
       <div className="traffic-title-row">
-        <h2>TrÃ¡fico y demanda Â· {selected.name || "cruce seleccionado"}</h2>
-        <button type="button" className="info-mini-button traffic-info-button" onClick={() => setShowTrafficInfo((value) => !value)} title="InformaciÃ³n de TrÃ¡fico y demanda">?</button>
+        <h2>Tráfico y demanda · {selected.name || "cruce seleccionado"}</h2>
+        <button type="button" className="info-mini-button traffic-info-button" onClick={() => setShowTrafficInfo((value) => !value)} title="Información de Tráfico y demanda">?</button>
       </div>
 
       {showTrafficInfo && (
         <div className="info-popover traffic-info-popover">
-          <button type="button" className="info-popover-close" onClick={() => setShowTrafficInfo(false)}>Ã—</button>
-          <strong>TrÃ¡fico y demanda</strong>
+          <button type="button" className="info-popover-close" onClick={() => setShowTrafficInfo(false)}>×</button>
+          <strong>Tráfico y demanda</strong>
           <ul>
                 <li><b>Demanda actual:</b> porcentaje calculado con llegadas base, plan activo y factor de ajuste.</li>
-                <li><b>TrÃ¡fico actual:</b> estimaciÃ³n en vehÃ­culos/hora para cada eje del cruce.</li>
+                <li><b>Tráfico actual:</b> estimación en vehículos/hora para cada eje del cruce.</li>
                 <li><b>Plan de demanda activo:</b> escenario base: laborable, fin de semana, hora punta, nocturno o manual.</li>
                 <li><b>Factor de ajuste:</b> margen manual aplicado encima del plan. No sustituye al plan; lo afina.</li>
-                <li><b>Llegadas base simuladas:</b> flujo simulado de laboratorio. En un sistema real vendrÃ­a de lazos, cÃ¡maras o IA.</li>
+                <li><b>Llegadas base simuladas:</b> flujo simulado de laboratorio. En un sistema real vendría de lazos, cámaras o IA.</li>
                 <li><b>Pruebas manuales:</b> +1, +5 y -3 solo modifican cola simulada para probar el algoritmo.</li>
-                <li><b>PeatÃ³n:</b> simula pulsador peatonal; mÃ¡s adelante puede combinarse con cÃ¡mara/IA.</li>
+                <li><b>Peatón:</b> simula pulsador peatonal; más adelante puede combinarse con cámara/IA.</li>
               </ul>
         </div>
       )}
@@ -2458,7 +2458,7 @@ function TrafficDemandPanel({ selected, onVehicle, onPedestrian, onArrivalRate, 
         </div>
 
         <div className="traffic-summary-card">
-          <h3>TrÃ¡fico actual</h3>
+          <h3>Tráfico actual</h3>
           <div className="traffic-metric">
             <span>Norte / Sur</span>
             <b>{nsTraffic} veh/h</b>
@@ -2508,14 +2508,14 @@ function TrafficDemandPanel({ selected, onVehicle, onPedestrian, onArrivalRate, 
           <div key={direction} className="traffic-adjust-card">
             <h3>{direction === "NS" ? "Norte/Sur" : "Este/Oeste"}</h3>
             <label>
-              Llegadas base simuladas: {selected.arrivals[direction]} veh/min Â· efectivas: {effectiveArrival(selected, direction)} veh/min
+              Llegadas base simuladas: {selected.arrivals[direction]} veh/min · efectivas: {effectiveArrival(selected, direction)} veh/min
               <input type="range" min="0" max="45" value={selected.arrivals[direction]} onChange={(event) => onArrivalRate(selected.id, direction, Number(event.target.value))} />
             </label>
             <div className="traffic-adjust-actions">
               <Button onClick={() => onVehicle(selected.id, direction, 1)}>+1 prueba</Button>
               <Button onClick={() => onVehicle(selected.id, direction, 5)} variant="secondary">+5 cola</Button>
               <Button onClick={() => onVehicle(selected.id, direction, -3)} variant="danger">-3 cola</Button>
-              <Button onClick={() => onPedestrian(selected.id, direction)} variant="warning">PeatÃ³n / pulsador</Button>
+              <Button onClick={() => onPedestrian(selected.id, direction)} variant="warning">Peatón / pulsador</Button>
             </div>
           </div>
         ))}
@@ -2532,7 +2532,7 @@ function DetectorPanel({ selected, settings }) {
 
   return (
     <Panel className="detectors-rail-panel">
-      <h2>Detectores Â· {selected.name || "cruce seleccionado"}</h2>
+      <h2>Detectores · {selected.name || "cruce seleccionado"}</h2>
       <div className="detectors-rail-list">
         {rows.map(({ direction, label }) => {
           const queue = selected.queues[direction];
@@ -2559,7 +2559,7 @@ function DetectorPanel({ selected, settings }) {
               </div>
               <div className="detector-rail-summary">
                 <span>Cola: <b>{queue}</b> veh.</span>
-                <span>CÃ¡mara: <b>{settings.cameraEnabled ? `${cameraQueueMeters} m` : "OFF"}</b></span>
+                <span>Cámara: <b>{settings.cameraEnabled ? `${cameraQueueMeters} m` : "OFF"}</b></span>
                 <span className={exitBlocked ? "danger-text" : "ok-text"}>{exitBlocked ? "Salida saturada" : "Salida libre"}</span>
               </div>
             </section>
@@ -2588,20 +2588,20 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
     <Panel className="camera-contained-panel">
       <div className="panel-header camera-contained-header">
         <div>
-          <h2>CÃ¡maras del cruce Â· {selected.name || "cruce seleccionado"}</h2>
-          <p>Vista simulada de cÃ¡maras asociadas al cruce seleccionado. Flechas dentro del recuadro.</p>
+          <h2>Cámaras del cruce · {selected.name || "cruce seleccionado"}</h2>
+          <p>Vista simulada de cámaras asociadas al cruce seleccionado. Flechas dentro del recuadro.</p>
         </div>
         <div className="camera-header-actions">
-          <Button onClick={() => onAddCamera(selected.id)}>+ AÃ±adir cÃ¡mara</Button>
-          <span className="tag">{cameras.length} cÃ¡mara(s)</span>
+          <Button onClick={() => onAddCamera(selected.id)}>+ Añadir cámara</Button>
+          <span className="tag">{cameras.length} cámara(s)</span>
         </div>
       </div>
 
       {cameras.length === 0 ? (
         <div className="camera-empty-state">
-          <strong>Sin cÃ¡maras aÃ±adidas</strong>
-          <span>Este cruce no trae cÃ¡maras por defecto. AÃ±ade una cÃ¡mara para empezar.</span>
-          <Button onClick={() => onAddCamera(selected.id)}>+ AÃ±adir primera cÃ¡mara</Button>
+          <strong>Sin cámaras añadidas</strong>
+          <span>Este cruce no trae cámaras por defecto. Añade una cámara para empezar.</span>
+          <Button onClick={() => onAddCamera(selected.id)}>+ Añadir primera cámara</Button>
         </div>
       ) : (
         <div className="camera-contained-carousel">
@@ -2609,9 +2609,9 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
             className="camera-inside-arrow left"
             onClick={() => setCameraPage((page) => Math.max(0, page - 1))}
             disabled={cameraPage <= 0}
-            title="CÃ¡maras anteriores"
+            title="Cámaras anteriores"
           >
-            â€¹
+            ‹
           </button>
 
           <div className="camera-contained-track">
@@ -2622,7 +2622,7 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
                   onClick={() => onRemoveCamera(selected.id, camera.id)}
                   title={`Quitar ${camera.name}`}
                 >
-                  Ã—
+                  ×
                 </button>
                 <div className="camera-screen">
                   <div className="camera-road">
@@ -2638,15 +2638,15 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
                 </div>
 
                 <div className="info-grid camera-info-compact">
-                  <Info title="DirecciÃ³n" value={camera.direction} />
-                  <Info title="VehÃ­culos" value={camera.vehicles} />
+                  <Info title="Dirección" value={camera.direction} />
+                  <Info title="Vehículos" value={camera.vehicles} />
                   <Info title="Cola" value={`${camera.queueMeters} m`} />
                   <Info title="Visibilidad" value={`${camera.confidence}%`} />
                 </div>
 
                 <div className="pills camera-status-pills">
                   <Pill className={camera.enabled ? "state-green" : "state-neutral"}>{camera.enabled ? "Activa" : "Desactivada"}</Pill>
-                  <Pill className={camera.ok ? "state-green" : "state-red"}>{camera.ok ? "CÃ¡mara operativa" : "CÃ¡mara con fallo"}</Pill>
+                  <Pill className={camera.ok ? "state-green" : "state-red"}>{camera.ok ? "Cámara operativa" : "Cámara con fallo"}</Pill>
                   <Pill className={camera.blockedExit ? "state-red" : "state-green"}>{camera.blockedExit ? "Salida saturada" : "Salida libre"}</Pill>
                 </div>
 
@@ -2662,9 +2662,9 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
             className="camera-inside-arrow right"
             onClick={() => setCameraPage((page) => Math.min(maxPage, page + 1))}
             disabled={cameraPage >= maxPage}
-            title="CÃ¡maras siguientes"
+            title="Cámaras siguientes"
           >
-            â€º
+            ›
           </button>
         </div>
       )}
@@ -2684,15 +2684,15 @@ function HardwareHealthPanel({ selected, onToggleOpticFault, onToggleHardwareFla
     <Panel>
       <div className="panel-header">
         <div>
-          <h2>Estado hardware Â· {selected.name || "cruce seleccionado"}</h2>
-          <p>DiagnÃ³stico de mini PC, E/S, fuente, red, cÃ¡maras y Ã³pticas.</p>
+          <h2>Estado hardware · {selected.name || "cruce seleccionado"}</h2>
+          <p>Diagnóstico de mini PC, E/S, fuente, red, cámaras y ópticas.</p>
         </div>
         <Pill className={healthClass(level)}>{healthText(level)}</Pill>
       </div>
 
       <div className="hardware-grid">
-        <div className={metricClass(hardware.cabinetTemp >= 60)}><span>Armario</span><strong>{hardware.cabinetTemp.toFixed(1)}Â°C</strong></div>
-        <div className={metricClass(hardware.cpuTemp >= 75)}><span>CPU temp.</span><strong>{hardware.cpuTemp.toFixed(1)}Â°C</strong></div>
+        <div className={metricClass(hardware.cabinetTemp >= 60)}><span>Armario</span><strong>{hardware.cabinetTemp.toFixed(1)}°C</strong></div>
+        <div className={metricClass(hardware.cpuTemp >= 75)}><span>CPU temp.</span><strong>{hardware.cpuTemp.toFixed(1)}°C</strong></div>
         <div className={metricClass(hardware.cpuLoad >= 80)}><span>CPU</span><strong>{hardware.cpuLoad.toFixed(0)}%</strong></div>
         <div className={metricClass(hardware.diskUsage >= 90)}><span>Disco</span><strong>{hardware.diskUsage.toFixed(1)}%</strong></div>
         <div className={metricClass(hardware.voltage24 < 23 || hardware.voltage24 > 25)}><span>Fuente</span><strong>{hardware.voltage24.toFixed(1)}V</strong></div>
@@ -2700,15 +2700,15 @@ function HardwareHealthPanel({ selected, onToggleOpticFault, onToggleHardwareFla
       </div>
 
       <div className="demand-grid">
-        <button onClick={() => onToggleHardwareFlag(selected.id, "ioModuleOk")} className={hardware.ioModuleOk ? "module ok" : "module fault"}><strong>MÃ³dulo E/S</strong><span>{hardware.ioModuleOk ? "Operativo" : "Fallo"}</span></button>
+        <button onClick={() => onToggleHardwareFlag(selected.id, "ioModuleOk")} className={hardware.ioModuleOk ? "module ok" : "module fault"}><strong>Módulo E/S</strong><span>{hardware.ioModuleOk ? "Operativo" : "Fallo"}</span></button>
         <button onClick={() => onToggleHardwareFlag(selected.id, "loopDetectorOk")} className={hardware.loopDetectorOk ? "module ok" : "module fault"}><strong>Detector lazos</strong><span>{hardware.loopDetectorOk ? "Operativo" : "Fallo"}</span></button>
-        <button onClick={() => onToggleHardwareFlag(selected.id, "cameraOk")} className={hardware.cameraOk ? "module ok" : "module fault"}><strong>Subsistema cÃ¡mara</strong><span>{hardware.cameraOk ? "Operativo" : "Fallo"}</span></button>
+        <button onClick={() => onToggleHardwareFlag(selected.id, "cameraOk")} className={hardware.cameraOk ? "module ok" : "module fault"}><strong>Subsistema cámara</strong><span>{hardware.cameraOk ? "Operativo" : "Fallo"}</span></button>
       </div>
 
       <div className="optic-block">
         <div className="panel-header">
-          <h3>DiagnÃ³stico de Ã³pticas por grupo</h3>
-          <Pill className={faultCount ? "state-red" : "state-green"}>{faultCount ? `${faultCount} averÃ­a(s)` : "sin averÃ­as"}</Pill>
+          <h3>Diagnóstico de ópticas por grupo</h3>
+          <Pill className={faultCount ? "state-red" : "state-green"}>{faultCount ? `${faultCount} avería(s)` : "sin averías"}</Pill>
         </div>
         <div className="optic-diagnostic-grid">
           {opticKeys.map((key) => {
@@ -2732,13 +2732,13 @@ function RulesPanel() {
       <h2>Reglas duras</h2>
       <ul className="rule-list">
         <li>No se ejecutan verdes conflictivos: el motor filtra grupos incompatibles.</li>
-        <li>Ãmbar bloquea peatones.</li>
+        <li>Ámbar bloquea peatones.</li>
         <li>Todo rojo separa fases.</li>
-        <li>Verde mÃ­nimo y mÃ¡ximo obligatorios.</li>
-        <li>Modo manual/persona deja al PC en supervisiÃ³n.</li>
+        <li>Verde mínimo y máximo obligatorios.</li>
+        <li>Modo manual/persona deja al PC en supervisión.</li>
         <li>Manual asistido no salta directamente entre verdes incompatibles.</li>
-        <li>El estado hardware puede forzar aviso o averÃ­a.</li>
-        <li>El sistema sigue siendo simulaciÃ³n educativa/laboratorio.</li>
+        <li>El estado hardware puede forzar aviso o avería.</li>
+        <li>El sistema sigue siendo simulación educativa/laboratorio.</li>
       </ul>
     </Panel>
   );
@@ -2752,7 +2752,7 @@ function SystemCheckPanel({ issues, onRunCheck, activeRole, onPermissionDenied }
     <Panel>
       <div className="panel-header">
         <div>
-          <h2>ComprobaciÃ³n del sistema</h2>
+          <h2>Comprobación del sistema</h2>
           <p>Valida cruces, fases, grupos, enlaces, corredor, hardware y reglas de seguridad.</p>
         </div>
         <div className="panel-tools">
@@ -2789,7 +2789,7 @@ function LogPanel({ log, onClear, activeRole, onPermissionDenied }) {
       <div className="panel-header">
         <div>
           <h2>Registro</h2>
-          <p>Eventos, errores, acciones manuales y cambios de configuraciÃ³n.</p>
+          <p>Eventos, errores, acciones manuales y cambios de configuración.</p>
         </div>
         <div className="panel-tools">
           <HelpButton title="Registro de eventos" items={HYDRA_EVENTS_HELP} />
@@ -2841,7 +2841,7 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
           <article key={entry.id} className={`audit-entry ${entry.result}`}>
             <div>
               <strong>{entry.action}</strong>
-              <span>{formatHydraDate(entry.ts)} Â· {entry.userName} Â· {entry.roleName}</span>
+              <span>{formatHydraDate(entry.ts)} · {entry.userName} · {entry.roleName}</span>
             </div>
             <div>
               <span>{entry.projectName}</span>
@@ -2862,12 +2862,12 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
 function trafficGroupIcon(group) {
   const type = group?.type;
   const kind = group?.movementKind;
-  if (type === "pedestrian" || kind === "pedestrian_crossing") return "ðŸš¶";
-  if (type === "bus" || kind === "bus_lane") return "ðŸšŒ";
-  if (type === "bike" || kind === "bike_lane") return "ðŸš²";
-  if (type === "turn" || kind === "left_turn" || kind === "right_turn") return "â†±";
-  if (kind === "warning") return "âš ";
-  return "ðŸš¦";
+  if (type === "pedestrian" || kind === "pedestrian_crossing") return "🚶";
+  if (type === "bus" || kind === "bus_lane") return "🚌";
+  if (type === "bike" || kind === "bike_lane") return "🚲";
+  if (type === "turn" || kind === "left_turn" || kind === "right_turn") return "↱";
+  if (kind === "warning") return "⚠";
+  return "🚦";
 }
 
 function movementLabelForGroup(group) {
@@ -3101,7 +3101,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
 
     const nextControlGroups = sanitizeControlGroups([
       ...currentGroups,
-      { id, name: name || id.replace("GV-", "VehÃ­culos ").replace("GP", "Grupo peatones"), members: [] },
+      { id, name: name || id.replace("GV-", "Vehículos ").replace("GP", "Grupo peatones"), members: [] },
     ]);
 
     onUpdateGeometry(selected.id, { ...geometry, controlGroups: nextControlGroups });
@@ -3111,7 +3111,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
     const currentGroups = sanitizeControlGroups(geometry.controlGroups || []);
 
     // El ID interno del grupo queda estable para evitar duplicados al borrar/escribir.
-    // Se puede editar el nombre operativo, pero no el cÃ³digo en caliente.
+    // Se puede editar el nombre operativo, pero no el código en caliente.
     if (field === "id") return;
 
     const nextControlGroups = currentGroups.map((group) =>
@@ -3161,7 +3161,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
     const id = `F${geometry.phases.length + 1}`;
     const nextPhase = {
       id,
-      name: `Fase ${controlGroup.id} Â· ${controlGroup.name}`,
+      name: `Fase ${controlGroup.id} · ${controlGroup.name}`,
       greenGroups: [...controlGroup.members],
       duration: BASE_GREEN,
     };
@@ -3226,21 +3226,21 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
       <div className="configurator-header">
         <div>
           <h2>Configurador de Grupos y Maniobras</h2>
-          <p>Selecciona un grupo, configura quÃ© maniobra hace y asigna sus maniobras semafÃ³ricas. La configuraciÃ³n avanzada queda debajo para no perder funciones.</p>
+          <p>Selecciona un grupo, configura qué maniobra hace y asigna sus maniobras semafóricas. La configuración avanzada queda debajo para no perder funciones.</p>
         </div>
         <span className="configurator-badge">{GEOMETRIES[geometry.geometryType]}</span>
       </div>
 
       <div className="configurator-section group-section">
         <div className="configurator-section-title">
-          <span>1. ConfiguraciÃ³n de Grupos</span>
-          <small>G1, G2, G3â€¦ representan grupos del cruce. La posiciÃ³n real se verÃ¡ con iconos en el mapa.</small>
+          <span>1. Configuración de Grupos</span>
+          <small>G1, G2, G3… representan grupos del cruce. La posición real se verá con iconos en el mapa.</small>
         </div>
 
         <div className="configurator-grid">
           <div className="selected-group-card">
             <div className="selected-group-preview">
-              <div className="large-signal-icon">{selectedConfigGroup ? trafficGroupIcon(selectedConfigGroup) : "ï¼‹"}</div>
+              <div className="large-signal-icon">{selectedConfigGroup ? trafficGroupIcon(selectedConfigGroup) : "+"}</div>
               <strong>{selectedConfigGroup?.id || "Sin grupo"}</strong>
               <span>{selectedConfigGroup ? "Grupo activo" : "Crea un grupo"}</span>
             </div>
@@ -3264,10 +3264,10 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                   </select>
                 </label>
                 <label>
-                  DescripciÃ³n / ubicaciÃ³n
-                  <input value={selectedConfigGroup.description || ""} onChange={(event) => updateGroup(selectedConfigGroup.id, "description", event.target.value)} placeholder="Ej: vÃ­a principal, bajada, giro protegidoâ€¦" />
+                  Descripción / ubicación
+                  <input value={selectedConfigGroup.description || ""} onChange={(event) => updateGroup(selectedConfigGroup.id, "description", event.target.value)} placeholder="Ej: vía principal, bajada, giro protegido…" />
                 </label>
-                <div className="mini-note">S11/S12/S13 se configuran en las maniobras. AquÃ­ solo defines quÃ© hace el grupo.</div>
+                <div className="mini-note">S11/S12/S13 se configuran en las maniobras. Aquí solo defines qué hace el grupo.</div>
               </div>
             )}
           </div>
@@ -3276,8 +3276,8 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
             <div className="group-picker-title">Grupos</div>
             <div className="group-tile-grid">
               <button className="group-tile add" onClick={() => addGroup("vehicle")}>
-                <span>ï¼‹</span>
-                <small>AÃ±adir grupo</small>
+                <span>+</span>
+                <small>Añadir grupo</small>
               </button>
               {geometry.signalGroups.map((group) => (
                 <button key={group.id} onClick={() => setSelectedConfigGroupId(group.id)} className={selectedConfigGroup?.id === group.id ? "group-tile active" : "group-tile"}>
@@ -3288,8 +3288,8 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
               ))}
             </div>
             <div className="quick-add-row">
-              <Button onClick={() => addGroup("vehicle")} variant="secondary">+ VehÃ­culo</Button>
-              <Button onClick={() => addGroup("pedestrian")} variant="secondary">+ PeatÃ³n</Button>
+              <Button onClick={() => addGroup("vehicle")} variant="secondary">+ Vehículo</Button>
+              <Button onClick={() => addGroup("pedestrian")} variant="secondary">+ Peatón</Button>
               <Button onClick={() => addGroup("turn")} variant="secondary">+ Giro</Button>
               <Button onClick={() => addGroup("bus")} variant="secondary">+ Transporte</Button>
               <Button onClick={() => addGroup("bike")} variant="secondary">+ Bici</Button>
@@ -3301,18 +3301,18 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
 
       <div className="configurator-section maneuver-section">
         <div className="configurator-section-title blue">
-          <span>2. ConfiguraciÃ³n de Maniobras</span>
-          <small>Las maniobras son maniobras asignadas al grupo seleccionado. AquÃ­ decides quÃ© maniobra controla cada grupo y quÃ© Ã³pticas usa.</small>
+          <span>2. Configuración de Maniobras</span>
+          <small>Las maniobras son maniobras asignadas al grupo seleccionado. Aquí decides qué maniobra controla cada grupo y qué ópticas usa.</small>
         </div>
         <div className="quick-add-row">
-          <Button onClick={() => addSignalHead(selectedConfigGroup?.id || geometry.signalGroups[0]?.id)} variant="secondary">+ AÃ±adir maniobra</Button>
+          <Button onClick={() => addSignalHead(selectedConfigGroup?.id || geometry.signalGroups[0]?.id)} variant="secondary">+ Añadir maniobra</Button>
         </div>
         <div className="maneuver-card-grid">
           {selectedConfigGroup && selectedGroupHeads.length === 0 && (
             <div className="empty-maneuver-card">
               <strong>{selectedConfigGroup.id}</strong>
-              <span>Este grupo todavÃ­a no tiene maniobras/maniobras asignadas.</span>
-              <Button onClick={() => addSignalHead(selectedConfigGroup.id)}>AÃ±adir maniobra</Button>
+              <span>Este grupo todavía no tiene maniobras/maniobras asignadas.</span>
+              <Button onClick={() => addSignalHead(selectedConfigGroup.id)}>Añadir maniobra</Button>
             </div>
           )}
           {selectedGroupHeads.map((head) => (
@@ -3328,11 +3328,11 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
               <label>
                 Grupo que controla
                 <select value={head.movement} onChange={(event) => updateSignalHead(head.id, "movement", event.target.value)}>
-                  {geometry.signalGroups.map((group) => <option key={group.id} value={group.id}>{group.id} Â· {group.name}</option>)}
+                  {geometry.signalGroups.map((group) => <option key={group.id} value={group.id}>{group.id} · {group.name}</option>)}
                 </select>
               </label>
               <label>
-                Tipo de Ã³ptica / Ã³pticas
+                Tipo de óptica / ópticas
                 <select value={head.headType} onChange={(event) => updateSignalHead(head.id, "headType", event.target.value)}>
                   {Object.entries(HEAD_TYPES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
                 </select>
@@ -3349,29 +3349,29 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
             </div>
           ))}
           <button className="maneuver-add-card" onClick={() => addSignalHead(selectedConfigGroup?.id || geometry.signalGroups[0]?.id)}>
-            <span>ï¼‹</span>
-            <small>AÃ±adir maniobra</small>
+            <span>+</span>
+            <small>Añadir maniobra</small>
           </button>
         </div>
       </div>
 
       <details className="advanced-config">
-        <summary>ConfiguraciÃ³n avanzada: fases, tiempos, incompatibilidades y validaciÃ³n</summary>
+        <summary>Configuración avanzada: fases, tiempos, incompatibilidades y validación</summary>
         <div className="advanced-config-body">
 
 <div className="editor-grid">
         <div className="editor-box">
           <h3>Grupos del cruce</h3>
           <div className="button-grid">
-            <Button onClick={() => addGroup("vehicle")} variant="secondary">+ VehÃ­culo</Button>
-            <Button onClick={() => addGroup("pedestrian")} variant="secondary">+ PeatÃ³n</Button>
+            <Button onClick={() => addGroup("vehicle")} variant="secondary">+ Vehículo</Button>
+            <Button onClick={() => addGroup("pedestrian")} variant="secondary">+ Peatón</Button>
             <Button onClick={() => addGroup("turn")} variant="secondary">+ Giro</Button>
             <Button onClick={() => addGroup("bus")} variant="secondary">+ Bus</Button>
             <Button onClick={() => addGroup("bike")} variant="secondary">+ Bici</Button>
           </div>
 
           <div className="notice strong">
-            AquÃ­ creas maniobras del cruce: recto, giro izquierda, giro derecha, transversal, paso peatonal o aviso. S11/S12/S13 se define despuÃ©s en â€œManiobras semafÃ³ricasâ€, porque S indica las Ã³pticas fÃ­sicas de la maniobra.
+            Aquí creas maniobras del cruce: recto, giro izquierda, giro derecha, transversal, paso peatonal o aviso. S11/S12/S13 se define después en "Maniobras semafóricas", porque S indica las ópticas físicas de la maniobra.
           </div>
 
           <div className="group-list">
@@ -3379,7 +3379,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
               <div key={group.id} className="group-card">
                 <div className="group-head">
                   <label className="mini-field">
-                    CÃ³digo maniobra
+                    Código maniobra
                     <input
                       value={group.id}
                       onChange={(event) => renameGroupId(group.id, event.target.value)}
@@ -3404,7 +3404,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                     {Object.entries(MOVEMENT_KINDS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                   </select>
                 </label>
-                <div className="muted">Ã“pticas base de maniobra: {group.optics.join(", ")} Â· El tipo S real se define en â€œManiobras semafÃ³ricasâ€.</div>
+                <div className="muted">Ópticas base de maniobra: {group.optics.join(", ")} · El tipo S real se define en "Maniobras semafóricas".</div>
               </div>
             ))}
           </div>
@@ -3412,8 +3412,8 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
 
         <div className="editor-box">
           <h3>Fases configurables</h3>
-          <p className="muted">Puedes aÃ±adir, duplicar, vaciar o quitar fases sin eliminar el cruce.</p>
-          <Button onClick={addPhase}>+ AÃ±adir fase</Button>
+          <p className="muted">Puedes añadir, duplicar, vaciar o quitar fases sin eliminar el cruce.</p>
+          <Button onClick={addPhase}>+ Añadir fase</Button>
 
           <div className="phase-list">
             {geometry.phases.map((phase) => {
@@ -3430,7 +3430,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                   </div>
                   <input value={phase.name} onChange={(event) => updatePhase(phase.id, "name", event.target.value)} />
                   <label className="field compact">
-                    DuraciÃ³n: {phase.duration}s
+                    Duración: {phase.duration}s
                     <input type="range" min="8" max="55" value={phase.duration} onChange={(event) => updatePhase(phase.id, "duration", Number(event.target.value))} />
                   </label>
                   <div className="phase-green-header">
@@ -3448,9 +3448,9 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                           key={group.id}
                           onClick={() => togglePhaseGroup(phase.id, group.id)}
                           className={isGreen ? "group-toggle active" : "group-toggle"}
-                          title={isGreen ? "Quitar de grupos en verde" : "AÃ±adir a grupos en verde"}
+                          title={isGreen ? "Quitar de grupos en verde" : "Añadir a grupos en verde"}
                         >
-                          {isGreen ? `âœ“ ${group.id}` : `+ ${group.id}`}
+                          {isGreen ? `✓ ${group.id}` : `+ ${group.id}`}
                         </button>
                       );
                     })}
@@ -3462,7 +3462,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                       const outputs = phaseOutputs(phase, heads);
                       return (
                         <label key={head.id} className="mini-field">
-                          {head.id} Â· {head.name}
+                          {head.id} · {head.name}
                           <select value={outputs[head.id] || "red"} onChange={(event) => updatePhaseOutput(phase.id, head.id, event.target.value)}>
                             {Object.entries(OUTPUT_STATES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                           </select>
@@ -3470,7 +3470,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                       );
                     })}
                   </div>
-                  {conflict && <div className="conflict-text">Conflicto: el motor bloquearÃ¡ los grupos incompatibles.</div>}
+                  {conflict && <div className="conflict-text">Conflicto: el motor bloqueará los grupos incompatibles.</div>}
                 </div>
               );
             })}
@@ -3481,8 +3481,8 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
       <div className="editor-box full">
         <div className="panel-header">
           <div>
-            <h3>Maniobras semafÃ³ricas</h3>
-            <p>S11/S12/S13 indican cantidad/configuraciÃ³n de Ã³pticas de la maniobra. La maniobra â€”recto, giro, transversal, peatÃ³n o avisoâ€” se define en Grupos del cruce.</p>
+            <h3>Maniobras semafóricas</h3>
+            <p>S11/S12/S13 indican cantidad/configuración de ópticas de la maniobra. La maniobra —recto, giro, transversal, peatón o aviso— se define en Grupos del cruce.</p>
           </div>
           <Button onClick={() => addSignalHead()} variant="secondary">+ Maniobra</Button>
         </div>
@@ -3503,12 +3503,12 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
               <label className="mini-field">
                 Grupo que controla
                 <select value={head.movement} onChange={(event) => updateSignalHead(head.id, "movement", event.target.value)}>
-                  {geometry.signalGroups.map((group) => <option key={group.id} value={group.id}>{group.id} Â· {group.name}</option>)}
+                  {geometry.signalGroups.map((group) => <option key={group.id} value={group.id}>{group.id} · {group.name}</option>)}
                 </select>
               </label>
 
               <label className="mini-field">
-                Tipo de Ã³ptica / Ã³pticas
+                Tipo de óptica / ópticas
                 <select value={head.headType} onChange={(event) => updateSignalHead(head.id, "headType", event.target.value)}>
                   {Object.entries(HEAD_TYPES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
                 </select>
@@ -3529,7 +3529,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
         </div>
 
         <div className="notice strong">
-          Ejemplo: una maniobra puede ser S13 rojo/Ã¡mbar/verde, otra S12 doble Ã¡mbar, otra S11 solo Ã¡mbar. La fase decide quÃ© maniobra se abre; la maniobra decide quÃ© Ã³pticas existen.
+          Ejemplo: una maniobra puede ser S13 rojo/ámbar/verde, otra S12 doble ámbar, otra S11 solo ámbar. La fase decide qué maniobra se abre; la maniobra decide qué ópticas existen.
         </div>
       </div>
 
@@ -3537,10 +3537,10 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
         <div className="panel-header">
           <div>
             <h3>Grupos operativos GV/GP</h3>
-            <p>ConvenciÃ³n recomendada: GV para vehÃ­culos y GP para peatones. La posiciÃ³n concreta la muestran las miniaturas del mapa y el nombre editable de cada maniobra.</p>
+            <p>Convención recomendada: GV para vehículos y GP para peatones. La posición concreta la muestran las miniaturas del mapa y el nombre editable de cada maniobra.</p>
           </div>
           <div className="button-grid">
-            <Button onClick={() => addControlGroup("GV", "Grupo vehÃ­culos")} variant="secondary">+ GV</Button>
+            <Button onClick={() => addControlGroup("GV", "Grupo vehículos")} variant="secondary">+ GV</Button>
             <Button onClick={() => addControlGroup("GP", "Grupo peatones")} variant="secondary">+ GP</Button>
             <Button onClick={applyGvGpConvention} variant="warning">Aplicar GV/GP</Button>
             <Button onClick={applyAvEuropaTurnPreset} variant="warning">Plantilla Av. Europa giro</Button>
@@ -3553,8 +3553,8 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
             <div key={controlGroup.id} className="control-group-card">
               <div className="group-head">
                 <label className="mini-field">
-                  CÃ³digo grupo
-                  <input value={controlGroup.id} readOnly title="CÃ³digo interno estable. Para cambiarlo, crea otro grupo y borra este." />
+                  Código grupo
+                  <input value={controlGroup.id} readOnly title="Código interno estable. Para cambiarlo, crea otro grupo y borra este." />
                 </label>
                 <Button onClick={() => removeControlGroup(controlGroup.id)} variant="danger">Quitar</Button>
               </div>
@@ -3589,7 +3589,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
         </div>
 
         <div className="notice strong">
-          Ejemplo: GV agrupa todos los vehÃ­culos; GV-Principal agrupa la vÃ­a principal, GV-Giro el giro y GP los peatones. Una fase puede abrir una maniobra concreta mÃ¡s un giro compatible, dejando el resto en rojo.
+          Ejemplo: GV agrupa todos los vehículos; GV-Principal agrupa la vía principal, GV-Giro el giro y GP los peatones. Una fase puede abrir una maniobra concreta más un giro compatible, dejando el resto en rojo.
         </div>
       </div>
 
@@ -3603,7 +3603,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
             const active = geometry.conflicts.some(([x, y]) => [x, y].sort().join("::") === key);
             return (
               <button key={key} onClick={() => toggleConflict(a.id, b.id)} className={active ? "conflict active" : "conflict"}>
-                {a.id} â†” {b.id}
+                {a.id} ↔ {b.id}
               </button>
             );
           }))}
@@ -3631,8 +3631,8 @@ function CrossingDetails({ selected, signal }) {
 
       <div className="details-grid">
         <Info title="ID del cruce" value={selected.id} />
-        <Info title="GeometrÃ­a" value={GEOMETRIES[selected.geometry.geometryType]} />
-        <Info title="Modo" value={selected.operatorManual ? "Manual persona" : selected.localMode ? "Local" : "AutomÃ¡tico"} />
+        <Info title="Geometría" value={GEOMETRIES[selected.geometry.geometryType]} />
+        <Info title="Modo" value={selected.operatorManual ? "Manual persona" : selected.localMode ? "Local" : "Automático"} />
         <Info title="Fase activa" value={signal.activePhase.name} />
         <Info title="Estado" value={stageName(signal.stage)} />
         <Info title="Restante" value={`${signal.remaining}s`} />
@@ -3641,20 +3641,20 @@ function CrossingDetails({ selected, signal }) {
         <Info title="Longitud" value={selected.lng.toFixed(6)} />
         <Info title="Grupos" value={selected.geometry.signalGroups.length} />
         <Info title="Fases" value={selected.geometry.phases.length} />
-        <Info title="CÃ¡maras" value={selected.cameras.length} />
+        <Info title="Cámaras" value={selected.cameras.length} />
       </div>
 
       <div className="optic-block">
-        <div className="section-label">SituaciÃ³n de Ã³pticas por grupo</div>
+        <div className="section-label">Situación de ópticas por grupo</div>
         <div className="optic-grid wide">
           {selected.geometry.signalGroups.map((group) => (
-            <Optic key={group.id} label={`${group.id} Â· ${group.name}`} state={signal.groupStates[group.id]} />
+            <Optic key={group.id} label={`${group.id} · ${group.name}`} state={signal.groupStates[group.id]} />
           ))}
         </div>
       </div>
 
       <div className="optic-block">
-        <div className="section-label">Maniobras semafÃ³ricas reales</div>
+        <div className="section-label">Maniobras semafóricas reales</div>
         <div className="head-grid compact">
           {(selected.geometry.signalHeads || defaultSignalHeadsForGeometry(selected.geometry.geometryType, selected.geometry.signalGroups)).map((head) => (
             <div key={head.id} className="head-card">
@@ -3680,7 +3680,7 @@ function CrossingDetails({ selected, signal }) {
       </div>
 
       <div className={activeConflict ? "alert danger" : "alert ok"}>
-        {activeConflict ? "Seguridad activa: se bloquearon grupos incompatibles para evitar verdes conflictivos." : "CombinaciÃ³n compatible segÃºn matriz actual."}
+        {activeConflict ? "Seguridad activa: se bloquearon grupos incompatibles para evitar verdes conflictivos." : "Combinación compatible según matriz actual."}
       </div>
       {phaseExplanation(selected, signal) && (
         <div className="notice strong">
@@ -3710,8 +3710,8 @@ function SyncComparisonPanel({ corridorIds, crossings, signals, selectedId, onSe
     <Panel>
       <div className="panel-header">
         <div>
-          <h2>SincronizaciÃ³n visible</h2>
-          <p>Compara el corredor. La geometrÃ­a de cada cruce puede ser distinta.</p>
+          <h2>Sincronización visible</h2>
+          <p>Compara el corredor. La geometría de cada cruce puede ser distinta.</p>
         </div>
         <span className="tag">{corridor.length} seleccionados</span>
       </div>
@@ -3732,7 +3732,7 @@ function SyncComparisonPanel({ corridorIds, crossings, signals, selectedId, onSe
             : thisPrimaryOpen === basePrimaryOpen && signal.stage === base.stage && timingError <= 3
             ? "ventana alineada"
             : timingError <= 12
-            ? `leve desvÃ­o ${Math.round(timingError)}s`
+            ? `leve desvío ${Math.round(timingError)}s`
             : `desfase ${Math.round(timingError)}s`;
 
           const syncClass = index === 0
@@ -3759,8 +3759,8 @@ function SyncComparisonPanel({ corridorIds, crossings, signals, selectedId, onSe
               </div>
 
               <div className="info-grid">
-                <Info title="GeometrÃ­a" value={GEOMETRIES[crossing.geometry.geometryType]} />
-                <Info title="Grupo principal" value={primary ? `${primary.id} Â· ${primaryState}` : "â€”"} />
+                <Info title="Geometría" value={GEOMETRIES[crossing.geometry.geometryType]} />
+                <Info title="Grupo principal" value={primary ? `${primary.id} · ${primaryState}` : "—"} />
                 <Info title="Fase" value={signal.activePhase.id} />
                 <Info title="Restante" value={`${signal.remaining}s`} />
                 <Info title="Diferencia plan" value={index === 0 ? "0s" : `${plannedDelay >= 0 ? "+" : ""}${plannedDelay}s`} />
@@ -3775,10 +3775,10 @@ function SyncComparisonPanel({ corridorIds, crossings, signals, selectedId, onSe
               </div>
 
               <div className="optic-block">
-                <div className="section-label">Ã“pticas activas</div>
+                <div className="section-label">Ópticas activas</div>
                 <div className="optic-grid">
                   {crossing.geometry.signalGroups.slice(0, 4).map((group) => (
-                    <Optic key={group.id} label={`${group.id} Â· ${group.name}`} state={signal.groupStates[group.id]} />
+                    <Optic key={group.id} label={`${group.id} · ${group.name}`} state={signal.groupStates[group.id]} />
                   ))}
                 </div>
               </div>
@@ -3789,7 +3789,7 @@ function SyncComparisonPanel({ corridorIds, crossings, signals, selectedId, onSe
               </div>
 
               <div onClick={(event) => { event.stopPropagation(); onToggleCorridor(crossing.id); }} className="remove-sync">
-                Quitar de sincronizaciÃ³n
+                Quitar de sincronización
               </div>
             </button>
           );
@@ -3804,15 +3804,15 @@ function EmptySelectionPanel({ addMode, onAddFirst, onToggleAddMode }) {
   return (
     <Panel className="empty-selection-panel">
       <h2>Sin cruce seleccionado</h2>
-      <p>No hay cruces en el mapa o no hay ninguno seleccionado. Puedes crear el primero directamente o activar el modo aÃ±adir y pulsar sobre el mapa.</p>
+      <p>No hay cruces en el mapa o no hay ninguno seleccionado. Puedes crear el primero directamente o activar el modo añadir y pulsar sobre el mapa.</p>
       <div className="empty-actions">
-        <Button onClick={onAddFirst}>+ AÃ±adir primer cruce</Button>
+        <Button onClick={onAddFirst}>+ Añadir primer cruce</Button>
         <Button onClick={onToggleAddMode} variant={addMode ? "warning" : "secondary"}>
-          {addMode ? "Modo aÃ±adir ON" : "Activar modo aÃ±adir"}
+          {addMode ? "Modo añadir ON" : "Activar modo añadir"}
         </Button>
       </div>
       <div className="notice">
-        Modo aÃ±adir en mapa: {addMode ? "activado" : "desactivado"}
+        Modo añadir en mapa: {addMode ? "activado" : "desactivado"}
       </div>
     </Panel>
   );
@@ -3840,13 +3840,13 @@ function CorridorPanel({ crossings, corridorIds, signals, selectedId, onSelect, 
       <div className="corridor-target-layout">
         <div className="corridor-config-card">
           <select className="target-select" value={corridor.length ? `COR-${corridorIds.join("-")}` : "Sin corredor"} disabled title="Resumen del corredor activo; el orden se cambia con los botones Ordenar y Aplicar onda.">
-            <option>{corridor.length ? `COR-01 Â· ${corridor.map((item) => item.id).join(" â†’ ")}` : "Sin corredor"}</option>
+            <option>{corridor.length ? `COR-01 · ${corridor.map((item) => item.id).join(" → ")}` : "Sin corredor"}</option>
           </select>
 
           <div className="corridor-state-grid">
-            <span>Estado: <b className={corridor.length ? "ok-text" : "warn-text"}>{corridor.length ? "Activo" : "VacÃ­o"}</b></span>
+            <span>Estado: <b className={corridor.length ? "ok-text" : "warn-text"}>{corridor.length ? "Activo" : "Vacío"}</b></span>
             <span>Cruces: <b>{corridor.length}</b></span>
-            <span>Sentido: <b>segÃºn mapa</b></span>
+            <span>Sentido: <b>según mapa</b></span>
             <span>Onda verde: <b className={greenWave >= 60 ? "ok-text" : "warn-text"}>{settingsSafeText(greenWave)}</b></span>
           </div>
 
@@ -3859,7 +3859,7 @@ function CorridorPanel({ crossings, corridorIds, signals, selectedId, onSelect, 
         </div>
 
         <div className="corridor-flow-card">
-          {corridor.length === 0 && <div className="notice">No hay cruces en el corredor. Pulsa â€œCorredorâ€ en un cruce o usa 4/5 cruces.</div>}
+          {corridor.length === 0 && <div className="notice">No hay cruces en el corredor. Pulsa "Corredor" en un cruce o usa 4/5 cruces.</div>}
           {corridor.map((crossing, index) => {
             const signal = signals[crossing.id];
             const health = healthLevel(crossing.hardware);
@@ -3873,7 +3873,7 @@ function CorridorPanel({ crossings, corridorIds, signals, selectedId, onSelect, 
                   <small className={health === "ok" ? "ok-text" : health === "warning" ? "warn-text" : "danger-text"}>{healthText(health)}</small>
                   <small>Offset: {crossing.offset}s</small>
                 </button>
-                {index < corridor.length - 1 && <div className="corridor-flow-arrow">â†’</div>}
+                {index < corridor.length - 1 && <div className="corridor-flow-arrow">→</div>}
               </div>
             );
           })}
@@ -3882,9 +3882,9 @@ function CorridorPanel({ crossings, corridorIds, signals, selectedId, onSelect, 
         <div className="corridor-summary-card">
           <h3>Resumen del corredor</h3>
           <div><span>Longitud:</span><b>{lengthKm} km</b></div>
-          <div><span>Tiempo de ciclo:</span><b>{avgCycle || "â€”"} s</b></div>
+          <div><span>Tiempo de ciclo:</span><b>{avgCycle || "—"} s</b></div>
           <div><span>Velocidad objetivo:</span><b>50 km/h</b></div>
-          <div><span>VehÃ­culos onda verde:</span><b>{greenWave}%</b></div>
+          <div><span>Vehículos onda verde:</span><b>{greenWave}%</b></div>
         </div>
       </div>
     </Panel>
@@ -3904,8 +3904,8 @@ function DecisionPanel({ selected, signal, settings }) {
     <Panel>
       <div className="panel-header">
         <div>
-          <h2>DecisiÃ³n del cruce {selected.name || "cruce seleccionado"}</h2>
-          <p>Motivos de duraciÃ³n, fase activa, grupo principal y bloqueos de seguridad.</p>
+          <h2>Decisión del cruce {selected.name || "cruce seleccionado"}</h2>
+          <p>Motivos de duración, fase activa, grupo principal y bloqueos de seguridad.</p>
         </div>
         <Pill className={signal.safetyFiltered ? "state-amber" : "state-green"}>{signal.safetyFiltered ? "filtrado seguro" : "compatible"}</Pill>
       </div>
@@ -3915,7 +3915,7 @@ function DecisionPanel({ selected, signal, settings }) {
         <Info title="Estado" value={stageName(signal.stage)} />
         <Info title="Restante" value={`${signal.remaining}s`} />
         <Info title="Ciclo" value={`${signal.cycle}s`} />
-        <Info title="Grupo principal" value={primary ? `${primary.id} Â· ${primary.name}` : "â€”"} />
+        <Info title="Grupo principal" value={primary ? `${primary.id} · ${primary.name}` : "—"} />
         <Info title="Estado principal" value={primaryState} />
       </div>
 
@@ -3934,12 +3934,12 @@ function DecisionPanel({ selected, signal, settings }) {
           return (
             <div key={phase.id} className={`phase-card ${conflict ? "phase-conflict" : ""}`}>
               <div className="group-head">
-                <strong>{phase.id} Â· {phase.name}</strong>
+                <strong>{phase.id} · {phase.name}</strong>
                 {active && <Pill className="state-green">activa</Pill>}
               </div>
-              <div className="muted">DuraciÃ³n programada: {phase.duration}s Â· duraciÃ³n efectiva: {signal.phaseDurations[index] ?? phase.duration}s</div>
+              <div className="muted">Duración programada: {phase.duration}s · duración efectiva: {signal.phaseDurations[index] ?? phase.duration}s</div>
               <div className="muted">Verdes programados: {planned}</div>
-              {conflict && <div className="conflict-text">Contiene incompatibilidades. El motor bloquearÃ¡ grupos conflictivos.</div>}
+              {conflict && <div className="conflict-text">Contiene incompatibilidades. El motor bloqueará grupos conflictivos.</div>}
             </div>
           );
         })}
@@ -3951,18 +3951,18 @@ function DecisionPanel({ selected, signal, settings }) {
 
 function LeftSidebar({ active = "Inicio", systemOk = true, onSelect = () => {} }) {
   const items = [
-    ["ðŸ ", "Inicio"],
-    ["ðŸ—ºï¸", "Mapa del sistema"],
-    ["ðŸš¦", "Cruces"],
-    ["ðŸ”—", "Corredores"],
-    ["ðŸ§ª", "Escenarios"],
-    ["ðŸ“„", "Informes"],
-    ["âš ï¸", "Eventos"],
-    ["ðŸ§°", "Dispositivos"],
-    ["ðŸ“·", "CÃ¡maras"],
-    ["âš™ï¸", "ConfiguraciÃ³n"],
-    ["ðŸ‘¤", "Usuarios"],
-    ["ðŸ›¡ï¸", "Sistema"],
+    ["🏠", "Inicio"],
+    ["🗺️", "Mapa del sistema"],
+    ["🚦", "Cruces"],
+    ["🔗", "Corredores"],
+    ["🧪", "Escenarios"],
+    ["📄", "Informes"],
+    ["⚠️", "Eventos"],
+    ["🧰", "Dispositivos"],
+    ["📷", "Cámaras"],
+    ["⚙️", "Configuración"],
+    ["👤", "Usuarios"],
+    ["🛡️", "Sistema"],
   ];
 
   return (
@@ -3973,7 +3973,7 @@ function LeftSidebar({ active = "Inicio", systemOk = true, onSelect = () => {} }
         </div>
         <div>
           <strong>Hydra Traffic Lab</strong>
-          <span>RegulaciÃ³n inteligente</span>
+          <span>Regulación inteligente</span>
         </div>
       </div>
 
@@ -4029,7 +4029,7 @@ function RightControlPanel({
   activeRole,
   onPermissionDenied,
 }) {
-  const status = selected.operatorManual ? "Manual persona" : selected.localMode ? "AutomÃ¡tico local" : "AutomÃ¡tico remoto";
+  const status = selected.operatorManual ? "Manual persona" : selected.localMode ? "Automático local" : "Automático remoto";
 
   return (
     <section className="center-control-strip">
@@ -4040,14 +4040,14 @@ function RightControlPanel({
 
       <div className="target-control-grid">
         <div className="target-card target-settings-card">
-          <h3>âš™ï¸ Ajustes globales</h3>
+          <h3>⚙️ Ajustes globales</h3>
           <div className="target-check-list">
-            <Check label="CoordinaciÃ³n activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
+            <Check label="Coordinación activa" value={settings.linkedMode} set={(value) => setSettings((old) => ({ ...old, linkedMode: value }))} />
             <Check label="Manual asistido" value={settings.manualAssist} set={(value) => setSettings((old) => ({ ...old, manualAssist: value }))} />
             <Check label="Control adaptativo" value={settings.adaptive} set={(value) => setSettings((old) => ({ ...old, adaptive: value }))} />
             <Check label="Lazos virtuales" value={settings.loopsEnabled} set={(value) => setSettings((old) => ({ ...old, loopsEnabled: value }))} />
-            <Check label="CÃ¡mara virtual" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
-            <Check label="Llegadas automÃ¡ticas" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
+            <Check label="Cámara virtual" value={settings.cameraEnabled} set={(value) => setSettings((old) => ({ ...old, cameraEnabled: value }))} />
+            <Check label="Llegadas automáticas" value={settings.autoTraffic} set={(value) => setSettings((old) => ({ ...old, autoTraffic: value }))} />
           </div>
 
           <label className="target-range">
@@ -4060,32 +4060,32 @@ function RightControlPanel({
           <h3>Selector del regulador</h3>
           <select className="target-select" value={selected.id} onChange={(event) => onSelectCrossing(event.target.value)}>
             {crossings.map((crossing) => (
-              <option key={crossing.id} value={crossing.id}>{crossing.id} Â· {crossing.name}</option>
+              <option key={crossing.id} value={crossing.id}>{crossing.id} · {crossing.name}</option>
             ))}
           </select>
           <div className="target-status-line">Estado: <b>{status}</b></div>
           <div className="target-mode-grid">
-            <Button onClick={() => onSetRegulatorMode(selected.id, false)}>AutomÃ¡tico remoto</Button>
-            <Button onClick={() => onSetLocalMode(selected.id, true)} variant="secondary">AutomÃ¡tico local</Button>
+            <Button onClick={() => onSetRegulatorMode(selected.id, false)}>Automático remoto</Button>
+            <Button onClick={() => onSetLocalMode(selected.id, true)} variant="secondary">Automático local</Button>
             <Button onClick={() => onSetRegulatorMode(selected.id, true)} variant="danger">Manual persona</Button>
             <Button onClick={() => onSetLocalMode(selected.id, false)} variant="warning">Salir local</Button>
           </div>
         </div>
 
         <div className="target-card target-intervention-card">
-          <h3>IntervenciÃ³n rÃ¡pida</h3>
+          <h3>Intervención rápida</h3>
           <div className="target-intervention-buttons">
             <Button onClick={onSafeStep} variant="warning" disabled={!settings.manualAssist}>Avanzar etapa segura</Button>
             <Button onClick={onClearActiveQueue} variant="secondary" disabled={!settings.manualAssist}>Priorizar cola activa</Button>
-            <Button onClick={onFaultMode} variant="danger">AverÃ­a local</Button>
+            <Button onClick={onFaultMode} variant="danger">Avería local</Button>
           </div>
         </div>
 
         <div className="target-card target-actions-card">
-          <h3>Acciones rÃ¡pidas</h3>
+          <h3>Acciones rápidas</h3>
           <div className="target-actions-grid">
-            <Button onClick={onToggleRunning}>{running ? "â¸ Pausar" : "â–¶ Iniciar"}</Button>
-            <Button onClick={() => typeof onAddCrossing === "function" && onAddCrossing()}>+ AÃ±adir cruce</Button>
+            <Button onClick={onToggleRunning}>{running ? "⏸ Pausar" : "▶ Iniciar"}</Button>
+            <Button onClick={() => typeof onAddCrossing === "function" && onAddCrossing()}>+ Añadir cruce</Button>
             <Button onClick={onToggleLinkMode} variant={linkMode ? "warning" : "secondary"}>{linkMode ? "Unir ON" : "Unir cruces"}</Button>
             <Button onClick={onOptimize} variant="warning">Optimizar onda</Button>
             <Button onClick={onRunCheck} variant="warning">Comprobar</Button>
@@ -4100,7 +4100,7 @@ function RightControlPanel({
           <div className="target-summary-grid">
             <div><span>Tiempo</span><strong>{tick}s</strong></div>
             <div><span>Cruces</span><strong>{crossings.length}</strong></div>
-            <div><span>Seleccionado</span><strong>{selected?.id || "â€”"}</strong></div>
+            <div><span>Seleccionado</span><strong>{selected?.id || "—"}</strong></div>
             <div><span>Incidencias</span><strong className={liveIssues.length ? "danger-number" : ""}>{liveIssues.length}</strong></div>
           </div>
         </div>
@@ -4132,10 +4132,10 @@ function RecentEventsBar({ log }) {
 function FloatingEventsWindow({ log, open, minimized, onOpen, onMinimize, onMaximize, onClose }) {
   const items = log.slice(0, 8);
   if (!open) {
-    return <button className="events-dock-item" onClick={onOpen}>Eventos recientes Â· {items.length}</button>;
+    return <button className="events-dock-item" onClick={onOpen}>Eventos recientes · {items.length}</button>;
   }
   if (minimized) {
-    return <button className="events-dock-item" onClick={onMaximize}>Eventos recientes Â· minimizado Â· {items.length}</button>;
+    return <button className="events-dock-item" onClick={onMaximize}>Eventos recientes · minimizado · {items.length}</button>;
   }
   return (
     <div className="floating-events-window">
@@ -4143,8 +4143,8 @@ function FloatingEventsWindow({ log, open, minimized, onOpen, onMinimize, onMaxi
         <strong>Eventos recientes</strong>
         <div>
           <button onClick={onMinimize}>_</button>
-          <button onClick={onMaximize}>â–¡</button>
-          <button onClick={onClose}>Ã—</button>
+          <button onClick={onMaximize}>□</button>
+          <button onClick={onClose}>×</button>
         </div>
       </div>
       <div className="floating-events-body">
@@ -4168,7 +4168,7 @@ function ProjectStoragePanel({ storageStatus, activeRole, onPermissionDenied, on
       <div className="storage-header">
         <div>
           <h2>Guardado del proyecto</h2>
-          <p>Guardado automÃ¡tico local. Exportar JSON sigue siendo la copia externa recomendada.</p>
+          <p>Guardado automático local. Exportar JSON sigue siendo la copia externa recomendada.</p>
         </div>
         <div className="panel-tools">
           <HelpButton
@@ -4186,7 +4186,7 @@ function ProjectStoragePanel({ storageStatus, activeRole, onPermissionDenied, on
       <div className="storage-actions-grid">
         <PermissionButton role={activeRole} permission="viewSystem" onDenied={onPermissionDenied} onClick={onSave} action="guardar proyecto">Guardar ahora</PermissionButton>
         <PermissionButton role={activeRole} permission="changePlans" onDenied={onPermissionDenied} onClick={() => onCreatePoint("Punto manual")} action="crear punto de restauracion" variant="secondary">Crear punto</PermissionButton>
-        <Button onClick={onRestore} variant="warning">Restaurar Ãºltimo</Button>
+        <Button onClick={onRestore} variant="warning">Restaurar último</Button>
         <Button onClick={onClearSave} variant="danger">Borrar guardado local</Button>
       </div>
     </Panel>
@@ -4676,7 +4676,7 @@ function SessionMenuR26({ user, role, project, onOpenUsers, onSwitchUser, onLogo
         <strong>{user?.name || role?.name || "Sin sesion"}</strong>
       </div>
       <div className="session-menu-body">
-        <p>{role?.name || "Sin rol"} Â· {project?.name || "Sin ciudad activa"}</p>
+        <p>{role?.name || "Sin rol"} · {project?.name || "Sin ciudad activa"}</p>
         <p>{role?.description || "Acceso local simulado pendiente de iniciar."}</p>
         <div className="session-menu-actions">
           <button type="button" onClick={onOpenUsers}>Ir a Usuarios</button>
@@ -4713,7 +4713,7 @@ function LoginModalR26({ open, users, projects, selectedUserId, pin, error, onUs
             <select value={selectedUser?.id || ""} onChange={(event) => onUserChange(event.target.value)}>
               {activeUsers.map((user) => {
                 const role = getRoleById(user.roleId);
-                return <option key={user.id} value={user.id}>{user.name} Â· {role?.name || "Rol"}</option>;
+                return <option key={user.id} value={user.id}>{user.name} · {role?.name || "Rol"}</option>;
               })}
               {activeUsers.length === 0 && <option value="">Sin usuarios activos</option>}
             </select>
@@ -4731,8 +4731,8 @@ function LoginModalR26({ open, users, projects, selectedUserId, pin, error, onUs
           {error && <div className="access-error">{error}</div>}
           <div className="access-role-note">
             <strong>{selectedUser?.name || "Usuario"}</strong>
-            <span>{selectedRole.name} Â· {assignedProjects}</span>
-            <small>Usuario: {selectedUser?.username || "-"} Â· PIN demo: {selectedUser?.pin || "-"}</small>
+            <span>{selectedRole.name} · {assignedProjects}</span>
+            <small>Usuario: {selectedUser?.username || "-"} · PIN demo: {selectedUser?.pin || "-"}</small>
           </div>
           <div className="access-actions">
             <Button type="submit">Entrar</Button>
@@ -4774,7 +4774,7 @@ function UsersPanelR26({
         roleId: activePerson.roleId,
         status: "conectado",
         section: activeSection || "Inicio",
-        summary: `${activePerson.name} Â· ${activeRole?.name || "Rol"}`,
+        summary: `${activePerson.name} · ${activeRole?.name || "Rol"}`,
         lastAction: "Uso local simulado desde este navegador",
         time: activeUser?.startedAt ? `desde ${formatHydraTime(activeUser.startedAt)}` : "sesion local",
       }
@@ -4918,7 +4918,7 @@ function UsersPanelR26({
               <span>{audit.length} registro(s) estructurado(s).</span>
             </div>
             <ul>
-              {(audit.length ? audit.slice(0, 6).map((entry) => `${entry.userName} Â· ${entry.action} Â· ${entry.result}`) : HYDRA_SIMULATED_ACTIVITY_LOG).map((item, index) => (
+              {(audit.length ? audit.slice(0, 6).map((entry) => `${entry.userName} · ${entry.action} · ${entry.result}`) : HYDRA_SIMULATED_ACTIVITY_LOG).map((item, index) => (
                 <li key={`${item}-${index}`}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   {item}
@@ -5116,7 +5116,7 @@ function App() {
   }, [running, tick, settings]);
 
   function addLog(text, meta = {}) {
-    setLog((old) => [`${new Date().toLocaleTimeString()} Â· ${text}`, ...old].slice(0, 80));
+    setLog((old) => [`${new Date().toLocaleTimeString()} · ${text}`, ...old].slice(0, 80));
     setAudit((old) => [
       makeAuditEntryFor(activePerson, activeRole, activeProject, meta.category || "sistema", meta.action || text, meta.target || activeProject?.name || "", meta.result || "ok", meta.permission || "", meta.detail || ""),
       ...old,
@@ -5349,21 +5349,21 @@ function App() {
     const next = updateProjectSnapshot(projects, activeProjectId, projectSnapshot());
     setProjects(next);
     const ok = saveHydraProjects({ activeProjectId, projects: next });
-    setStorageStatus(ok ? `${label} Â· ${new Date().toLocaleTimeString()}` : "No se pudo guardar localmente.");
+    setStorageStatus(ok ? `${label} · ${new Date().toLocaleTimeString()}` : "No se pudo guardar localmente.");
     if (ok) addLog(label);
   }
 
   function createRestorePoint(label = "Punto manual") {
     const ok = saveRestorePoint(label, projectSnapshot());
-    setStorageStatus(ok ? `Punto de restauraciÃ³n creado: ${label}` : "No se pudo crear punto de restauraciÃ³n.");
-    if (ok) addLog(`Punto de restauraciÃ³n creado: ${label}.`);
+    setStorageStatus(ok ? `Punto de restauración creado: ${label}` : "No se pudo crear punto de restauración.");
+    if (ok) addLog(`Punto de restauración creado: ${label}.`);
   }
 
   function restoreLastPoint() {
     const points = loadRestorePoints();
     const last = points[0];
     if (!last?.snapshot) {
-      alert("No hay puntos de restauraciÃ³n.");
+      alert("No hay puntos de restauración.");
       return;
     }
     if (!window.confirm(`Restaurar "${last.label}" del ${formatHydraDate(last.createdAt)}?`)) return;
@@ -5383,7 +5383,7 @@ function App() {
   }
 
   function clearLocalSave() {
-    if (!window.confirm("Borrar el guardado local? No borra lo que ves ahora, solo la copia automÃ¡tica del navegador.")) return;
+    if (!window.confirm("Borrar el guardado local? No borra lo que ves ahora, solo la copia automática del navegador.")) return;
     clearHydraProjectsSave();
     setStorageStatus("Guardado multi-proyecto borrado. El proyecto actual sigue abierto.");
     addLog("Guardado multi-proyecto borrado.");
@@ -5396,7 +5396,7 @@ function App() {
     setCrossings((old) => [...old, crossing]);
     setSelectedId(id);
     setCorridorIds((old) => old.length < 5 ? [...old, id] : old);
-    addLog(`AÃ±adido ${crossing.name}.`);
+    addLog(`Añadido ${crossing.name}.`);
   }
 
   function addCrossingFromPanel() {
@@ -5427,7 +5427,7 @@ function App() {
       return;
     }
     setManualLinks((old) => toggleLink(old, linkStartId, id));
-    addLog(`Enlace manual cambiado: ${linkStartId} â†” ${id}.`);
+    addLog(`Enlace manual cambiado: ${linkStartId} ↔ ${id}.`);
     setLinkStartId(null);
   }
 
@@ -5444,7 +5444,7 @@ function App() {
       if (index < 0) return c;
       return { ...c, linked: true, operatorManual: false, localMode: false, offset: index * 10 };
     }));
-    addLog(`Onda verde recalculada: ${ordered.join(" â†’ ")}.`);
+    addLog(`Onda verde recalculada: ${ordered.join(" → ")}.`);
   }
 
   function toggleManual() {
@@ -5461,7 +5461,7 @@ function App() {
       linked: manual ? false : true,
     } : c));
     setSettings((old) => ({ ...old, manualAssist: manual ? true : old.manualAssist }));
-    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programaciÃ³n automÃ¡tica.`);
+    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programación automática.`);
   }
 
   function updateSelected(field, value) {
@@ -5492,7 +5492,7 @@ function App() {
       to: link.to === oldId ? newId : link.to,
     })));
     setLinkStartId((current) => current === oldId ? newId : current);
-    addLog(`ID de cruce cambiado: ${oldId} â†’ ${newId}.`);
+    addLog(`ID de cruce cambiado: ${oldId} → ${newId}.`);
   }
 
   function setLocalMode(id, local) {
@@ -5502,7 +5502,7 @@ function App() {
       operatorManual: local ? false : c.operatorManual,
       linked: local ? false : c.linked,
     } : c));
-    addLog(local ? `Regulador ${id}: automÃ¡tico local.` : `Regulador ${id}: sale de modo local.`);
+    addLog(local ? `Regulador ${id}: automático local.` : `Regulador ${id}: sale de modo local.`);
   }
 
   function useFirstNCorridor(count) {
@@ -5512,18 +5512,18 @@ function App() {
       .map((crossing) => crossing.id);
     setCorridorIds(ordered);
     setCrossings((old) => old.map((crossing) => ({ ...crossing, linked: ordered.includes(crossing.id) })));
-    addLog(`Cruces seleccionados: ${ordered.join(" â†’ ") || "vacÃ­o"}.`);
+    addLog(`Cruces seleccionados: ${ordered.join(" → ") || "vacío"}.`);
   }
 
   function orderCorridorByMap() {
     const ordered = sortCrossingIdsByMap(crossings, corridorIds);
     setCorridorIds(ordered);
-    addLog(`Corredor ordenado por mapa: ${ordered.join(" â†’ ") || "vacÃ­o"}.`);
+    addLog(`Corredor ordenado por mapa: ${ordered.join(" → ") || "vacío"}.`);
   }
 
   function setGeometry(id, geometryType) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, geometry: makeGeometry(geometryType) } : c));
-    addLog(`GeometrÃ­a de ${id} cambiada a ${GEOMETRIES[geometryType]}.`);
+    addLog(`Geometría de ${id} cambiada a ${GEOMETRIES[geometryType]}.`);
   }
 
   function updateGeometry(id, geometry) {
@@ -5533,25 +5533,25 @@ function App() {
   function deleteSelected() {
     if (!selected) return;
     const id = selected.id;
-    if (!window.confirm(`Eliminar cruce ${id}? Se crearÃ¡ un punto de restauraciÃ³n antes.`)) return;
+    if (!window.confirm(`Eliminar cruce ${id}? Se creará un punto de restauración antes.`)) return;
     saveRestorePoint(`Antes de eliminar cruce ${id}`, projectSnapshot());
     const remaining = crossings.filter((c) => c.id !== id);
     setCrossings(remaining);
     setManualLinks((old) => removeLinksForCrossing(old, id));
     setCorridorIds((old) => old.filter((item) => item !== id));
     setSelectedId(remaining[0]?.id || null);
-    addLog(`Eliminado cruce ${id}. Punto de restauraciÃ³n creado.`);
+    addLog(`Eliminado cruce ${id}. Punto de restauración creado.`);
     setStorageStatus(`Cruce ${id} eliminado. Puedes restaurar el punto anterior.`);
   }
 
   function manualVehicle(id, direction, amount) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, queues: { ...c.queues, [direction]: clamp(c.queues[direction] + amount, 0, MAX_QUEUE) } } : c));
-    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehÃ­culo(s).`);
+    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehículo(s).`);
   }
 
   function requestPedestrian(id, direction) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, pedestrianRequests: { ...c.pedestrianRequests, [direction]: clamp(c.pedestrianRequests[direction] + 1, 0, 9) } } : c));
-    addLog(`PeticiÃ³n peatonal ${id}/${direction}.`);
+    addLog(`Petición peatonal ${id}/${direction}.`);
   }
 
   function setArrivalRate(id, direction, value) {
@@ -5581,35 +5581,35 @@ function App() {
       else faults[opticKey] = "sin_consumo";
       return { ...c, hardware: { ...c.hardware, opticFaults: faults } };
     }));
-    addLog(`Ã“ptica ${id}/${opticKey} cambiada.`);
+    addLog(`Óptica ${id}/${opticKey} cambiada.`);
   }
 
   function toggleCamera(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, enabled: !camera.enabled } : camera) } : c));
-    addLog(`CÃ¡mara ${id}/${cameraId} activada/desactivada.`);
+    addLog(`Cámara ${id}/${cameraId} activada/desactivada.`);
   }
 
   function toggleCameraOk(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, ok: !camera.ok } : camera) } : c));
-    addLog(`Estado de cÃ¡mara ${id}/${cameraId} cambiado.`);
+    addLog(`Estado de cámara ${id}/${cameraId} cambiado.`);
   }
 
   function addCamera(id) {
     setCrossings((old) => old.map((c) => {
       if (c.id !== id) return c;
       const camId = `CAM${c.cameras.length + 1}`;
-      return { ...c, cameras: [...c.cameras, makeCamera(camId, `CÃ¡mara ${camId}`, c.cameras.length % 2 === 0 ? "NS" : "EW")] };
+      return { ...c, cameras: [...c.cameras, makeCamera(camId, `Cámara ${camId}`, c.cameras.length % 2 === 0 ? "NS" : "EW")] };
     }));
-    addLog(`AÃ±adida cÃ¡mara a ${id}.`);
+    addLog(`Añadida cámara a ${id}.`);
   }
 
   function removeCamera(id, cameraId) {
     const crossing = crossings.find((c) => c.id === id);
     const camera = crossing?.cameras?.find((item) => item.id === cameraId);
     const cameraName = camera?.name || cameraId;
-    if (!window.confirm(`Â¿Quieres quitar la cÃ¡mara "${cameraName}"?`)) return;
+    if (!window.confirm(`¿Quieres quitar la cámara "${cameraName}"?`)) return;
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.filter((item) => item.id !== cameraId) } : c));
-    addLog(`Quitada cÃ¡mara ${id}/${cameraName}.`);
+    addLog(`Quitada cámara ${id}/${cameraName}.`);
   }
 
   function safeManualStep() {
@@ -5624,7 +5624,7 @@ function App() {
     if (!selected) return;
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, localMode: true, operatorManual: true, linked: false } : c));
     setSettings((old) => ({ ...old, manualAssist: true, adaptive: false }));
-    addLog(`Modo averÃ­a local activado en ${selected.id}.`);
+    addLog(`Modo avería local activado en ${selected.id}.`);
   }
 
   function clearActiveQueue() {
@@ -5637,11 +5637,11 @@ function App() {
   function runCheck() {
     const issues = validateSystem(crossings, manualLinks, corridorIds, signals, settings);
     setLastCheck(issues);
-    addLog(`ComprobaciÃ³n ejecutada: ${issues.length} incidencia(s).`);
+    addLog(`Comprobación ejecutada: ${issues.length} incidencia(s).`);
   }
 
   function reset() {
-    if (!window.confirm("Crear proyecto nuevo vacÃ­o? Se crearÃ¡ un punto de restauraciÃ³n antes.")) return;
+    if (!window.confirm("Crear proyecto nuevo vacío? Se creará un punto de restauración antes.")) return;
     saveRestorePoint("Antes de crear proyecto nuevo", projectSnapshot());
     setRunning(false);
     setTick(0);
@@ -5651,9 +5651,9 @@ function App() {
     setCorridorIds([]);
     setLinkStartId(null);
     setLinkMode(false);
-    setLog(["Proyecto nuevo vacÃ­o creado. Usa â€œAÃ±adir cruceâ€ para empezar."]);
+    setLog(["Proyecto nuevo vacío creado. Usa "Añadir cruce" para empezar."]);
     setLastCheck([]);
-    setStorageStatus("Proyecto nuevo vacÃ­o creado. Punto de restauraciÃ³n disponible.");
+    setStorageStatus("Proyecto nuevo vacío creado. Punto de restauración disponible.");
   }
 
   async function exportJson() {
@@ -5661,7 +5661,7 @@ function App() {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(data);
-        alert("ConfiguraciÃ³n copiada al portapapeles como JSON.");
+        alert("Configuración copiada al portapapeles como JSON.");
       } else {
         console.info("Export JSON:", data);
         alert("Portapapeles no disponible. El JSON se ha escrito en la consola del navegador.");
@@ -5670,7 +5670,7 @@ function App() {
       console.error("No se pudo copiar JSON:", error, data);
       alert("No se pudo copiar al portapapeles. El JSON se ha escrito en la consola del navegador.");
     }
-    addLog("ConfiguraciÃ³n exportada a JSON.");
+    addLog("Configuración exportada a JSON.");
   }
 
   const selectedSignal = selected ? signals[selected.id] : null;
@@ -5823,7 +5823,7 @@ function App() {
 
     if (activeSection === "Cruces") {
       return (
-        <SectionPage title="Cruces" description="Ficha completa del cruce seleccionado y sus paneles tÃ©cnicos." tag={selected?.name || "Sin selecciÃ³n"}>
+        <SectionPage title="Cruces" description="Ficha completa del cruce seleccionado y sus paneles técnicos." tag={selected?.name || "Sin selección"}>
           {renderCrossingWorkspace()}
         </SectionPage>
       );
@@ -5831,7 +5831,7 @@ function App() {
 
     if (activeSection === "Corredores") {
       return (
-        <SectionPage title="Corredores" description="Cruces seleccionados, orden, desfases y sincronizaciÃ³n de onda verde." tag={`${corridorIds.length} seleccionado(s)`}>
+        <SectionPage title="Corredores" description="Cruces seleccionados, orden, desfases y sincronización de onda verde." tag={`${corridorIds.length} seleccionado(s)`}>
           {renderCorridor()}
           <SyncComparisonPanel
             corridorIds={corridorIds}
@@ -5847,14 +5847,14 @@ function App() {
 
     if (activeSection === "Escenarios") {
       return (
-        <SectionPage title="Escenarios" description="Planes especiales para horarios, eventos, averÃ­as y condiciones de trÃ¡fico.">
+        <SectionPage title="Escenarios" description="Planes especiales para horarios, eventos, averías y condiciones de tráfico.">
           <SectionPlaceholder
             title="Escenarios preparados"
-            description="Esta pantalla queda separada para activar planes especiales sin mezclarla con la configuraciÃ³n del cruce."
+            description="Esta pantalla queda separada para activar planes especiales sin mezclarla con la configuración del cruce."
             items={[
-              { title: "Hora punta", text: "Ajustes de demanda y onda verde para mÃ¡xima saturaciÃ³n." },
+              { title: "Hora punta", text: "Ajustes de demanda y onda verde para máxima saturación." },
               { title: "Nocturno", text: "Ciclos reducidos y comportamiento conservador." },
-              { title: "AverÃ­a / obras", text: "Modos locales y restricciones de seguridad." },
+              { title: "Avería / obras", text: "Modos locales y restricciones de seguridad." },
             ]}
           />
         </SectionPage>
@@ -5863,7 +5863,7 @@ function App() {
 
     if (activeSection === "Informes") {
       return (
-        <SectionPage title="Informes" description="ValidaciÃ³n, incidencias y datos exportables del sistema.">
+        <SectionPage title="Informes" description="Validación, incidencias y datos exportables del sistema.">
           <section className="two-col">
             <RulesPanel />
             <SystemCheckPanel issues={lastCheck.length ? lastCheck : liveIssues} onRunCheck={guardAction("viewSystem", "comprobar sistema", runCheck)} activeRole={activeRole} onPermissionDenied={handlePermissionDenied} />
@@ -5875,7 +5875,7 @@ function App() {
 
     if (activeSection === "Eventos") {
       return (
-        <SectionPage title="Eventos" description="Registro vivo de acciones, avisos y cambios de configuraciÃ³n." tag={`${log.length} evento(s)`}>
+        <SectionPage title="Eventos" description="Registro vivo de acciones, avisos y cambios de configuración." tag={`${log.length} evento(s)`}>
           <EventsDashboardPanel log={log} audit={audit} issues={lastCheck.length ? lastCheck : liveIssues} activeRole={activeRole} />
           <AuditPanel audit={audit} activeRole={activeRole} onClear={guardAction("manageUsers", "limpiar auditoria", () => { setAudit([]); setLog((old) => ["Auditoria limpiada.", ...old].slice(0, 120)); })} onPermissionDenied={handlePermissionDenied} />
           <LogPanel log={log} onClear={guardAction("manageUsers", "limpiar registro de eventos", () => setLog(["Registro limpiado."]))} activeRole={activeRole} onPermissionDenied={handlePermissionDenied} />
@@ -5885,7 +5885,7 @@ function App() {
 
     if (activeSection === "Dispositivos") {
       return (
-        <SectionPage title="Dispositivos" description="Estado del mini PC, E/S, fuente, red y Ã³pticas del cruce seleccionado.">
+        <SectionPage title="Dispositivos" description="Estado del mini PC, E/S, fuente, red y ópticas del cruce seleccionado.">
           {selected ? (
             <HardwareHealthPanel selected={selected} onToggleOpticFault={guardAction("maintainHardware", "cambiar estado de optica", toggleOpticFault)} onToggleHardwareFlag={guardAction("maintainHardware", "cambiar estado de hardware", toggleHardwareFlag)} />
           ) : (
@@ -5895,9 +5895,9 @@ function App() {
       );
     }
 
-    if (activeSection === "CÃ¡maras") {
+    if (activeSection === "Cámaras") {
       return (
-        <SectionPage title="CÃ¡maras" description="CÃ¡maras asociadas al cruce seleccionado y visiÃ³n simulada.">
+        <SectionPage title="Cámaras" description="Cámaras asociadas al cruce seleccionado y visión simulada.">
           {selected ? (
             <CameraPanel
               selected={selected}
@@ -5914,9 +5914,9 @@ function App() {
       );
     }
 
-    if (activeSection === "ConfiguraciÃ³n") {
+    if (activeSection === "Configuración") {
       return (
-        <SectionPage title="ConfiguraciÃ³n" description="Ajustes del proyecto, guardado local y acciones globales.">
+        <SectionPage title="Configuración" description="Ajustes del proyecto, guardado local y acciones globales.">
           <ConfigurationOverviewPanel activeProject={activeProject} activeRole={activeRole} />
           <ProjectCityPanelR25
             projects={visibleProjects}
@@ -5943,7 +5943,7 @@ function App() {
 
     if (activeSection === "Usuarios") {
       return (
-        <SectionPage title="Usuarios" description="Personas, roles, ciudades asignadas y acceso local simulado." tag={activePerson?.name || activeRole?.name || "Sin sesiÃ³n"}>
+        <SectionPage title="Usuarios" description="Personas, roles, ciudades asignadas y acceso local simulado." tag={activePerson?.name || activeRole?.name || "Sin sesión"}>
           <UsersPanelR26
             activeRole={activeRole}
             activeUser={activeUser}
@@ -5966,13 +5966,13 @@ function App() {
 
     if (activeSection === "Sistema") {
       return (
-        <SectionPage title="Sistema" description="Estado tÃ©cnico, licencia, versiÃ³n y comprobaciÃ³n general.">
+        <SectionPage title="Sistema" description="Estado técnico, licencia, versión y comprobación general.">
           <SystemOverviewPanel activeProject={activeProject} activeRole={activeRole} storageStatus={storageStatus} liveIssues={liveIssues} />
           <SectionPlaceholder
             title="Hydra Traffic Lab"
-            description={`Licencia: Hydra Company. VersiÃ³n activa ${HYDRA_VERSION_LABEL}.`}
+            description={`Licencia: Hydra Company. Versión activa ${HYDRA_VERSION_LABEL}.`}
             items={[
-              { title: "VersiÃ³n", text: HYDRA_VERSION_LABEL },
+              { title: "Versión", text: HYDRA_VERSION_LABEL },
               { title: "Servidor", text: liveIssues.length === 0 ? "Servicio activo" : "Servicio con avisos" },
               { title: "Persistencia", text: storageStatus },
             ]}
@@ -6000,18 +6000,18 @@ function App() {
             <p>{activeProject?.name || "Proyecto local"} - Centro de control semaforico - Usuario: {activePerson?.name || "sin sesion"} - Rol: {activeRole?.name || "sin rol"}</p>
           </div>
           <div className="control-header-status header-status-pro">
-            <span className="status-pill ok">â— Servicio activo</span>
-            <span className="header-clock">â—· {new Date().toLocaleTimeString()}</span>
-            <span className="header-date">â–£ {new Date().toLocaleDateString()}</span>
+            <span className="status-pill ok">● Servicio activo</span>
+            <span className="header-clock">◷ {new Date().toLocaleTimeString()}</span>
+            <span className="header-date">▣ {new Date().toLocaleDateString()}</span>
             <button className="header-bell" title="Notificaciones" onClick={() => { setEventsOpen(true); setEventsMinimized(false); }}>
-              ðŸ””
+              🔔
               <span>{Math.min(9, liveIssues.length || 0)}</span>
             </button>
             <div className="header-user-wrap">
               <button className="header-user" title="Usuarios" onClick={() => setSessionMenuOpen((value) => !value)}>
-                <span className="header-user-icon">â—Ž</span>
+                <span className="header-user-icon">◎</span>
                 <strong>{activePerson?.name || activeRole?.name || "Sin sesion"}</strong>
-                <small>âŒ„</small>
+                <small>⌄</small>
               </button>
               {sessionMenuOpen && (
                 <SessionMenuR26
