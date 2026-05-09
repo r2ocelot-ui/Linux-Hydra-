@@ -13,6 +13,8 @@ const HYDRA_RESTORE_KEY = "hydraTrafficLab.f2.restorePoints";
 const HYDRA_SECTION_KEY = "hydraTrafficLab.f2.activeSection";
 const HYDRA_SESSION_KEY = "hydraTrafficLab.f2.session";
 const HYDRA_USERS_KEY = "hydraTrafficLab.f2.users";
+const HYDRA_AUDIT_KEY = "hydraTrafficLab.f2.audit";
+const HYDRA_AUDIT_MAX_ENTRIES = 400;
 const HYDRA_MAX_RESTORE_POINTS = 10;
 const HYDRA_SECTIONS = ["Inicio", "Mapa del sistema", "Cruces", "Corredores", "Escenarios", "Informes", "Eventos", "Dispositivos", "Cámaras", "Configuración", "Usuarios", "Sistema"];
 const HYDRA_VERSION_LABEL = "F2-V8.3-M1-R26";
@@ -543,6 +545,38 @@ function clearHydraSession() {
   if (typeof window === "undefined" || !storageAvailable()) return false;
   window.localStorage.removeItem(HYDRA_SESSION_KEY);
   return true;
+}
+
+// Punto de extensión para V9: sustituir comparación plana por bcrypt/argon2
+// cuando exista backend. Mantener firma estable.
+function verifyCredentials(user, pin) {
+  if (!user || user.active === false) return false;
+  return String(pin ?? "").trim() === String(user.pin ?? "");
+}
+
+function loadHydraAudit() {
+  if (typeof window === "undefined" || !storageAvailable()) return [];
+  try {
+    const raw = window.localStorage.getItem(HYDRA_AUDIT_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn("No se pudo cargar auditoria Hydra:", error);
+    return [];
+  }
+}
+
+function saveHydraAudit(audit) {
+  if (typeof window === "undefined" || !storageAvailable()) return false;
+  try {
+    const trimmed = Array.isArray(audit) ? audit.slice(0, HYDRA_AUDIT_MAX_ENTRIES) : [];
+    window.localStorage.setItem(HYDRA_AUDIT_KEY, JSON.stringify(trimmed));
+    return true;
+  } catch (error) {
+    console.warn("No se pudo guardar auditoria Hydra:", error);
+    return false;
+  }
 }
 
 function formatHydraDate(iso) {
@@ -2815,6 +2849,26 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
       && (category === "todas" || entry.category === category)
       && (result === "todos" || entry.result === result);
   });
+  function exportFiltered() {
+    if (typeof window === "undefined" || !filtered.length) return;
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: HYDRA_VERSION_LABEL,
+      filters: { query, category, result },
+      total: audit.length,
+      filtered: filtered.length,
+      entries: filtered,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `hydra-audit-${HYDRA_VERSION_SLUG}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
   return (
     <Panel className="audit-panel">
       <div className="panel-header">
@@ -2824,6 +2878,7 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
         </div>
         <div className="panel-tools">
           <span className="tag">{filtered.length}/{audit.length}</span>
+          <PermissionButton role={activeRole} permission="viewReports" onDenied={onPermissionDenied} onClick={exportFiltered} action="exportar auditoria" variant="secondary" disabled={filtered.length === 0}>Exportar JSON</PermissionButton>
           <PermissionButton role={activeRole} permission="manageUsers" onDenied={onPermissionDenied} onClick={onClear} action="limpiar auditoria" variant="secondary">Limpiar auditoria</PermissionButton>
         </div>
       </div>
@@ -4970,7 +5025,21 @@ function App() {
   const [linkMode, setLinkMode] = useState(false);
   const [linkStartId, setLinkStartId] = useState(null);
   const [log, setLog] = useState(activeProjectOnLoad?.log || [`${HYDRA_VERSION_LABEL} cargada: guardado multi-proyecto activo.`]);
-  const [audit, setAudit] = useState(activeProjectOnLoad?.audit || []);
+  const [audit, setAudit] = useState(() => {
+    const persisted = loadHydraAudit();
+    const fromProject = activeProjectOnLoad?.audit || [];
+    if (persisted.length === 0) return fromProject;
+    if (fromProject.length === 0) return persisted;
+    const seen = new Set();
+    const merged = [];
+    for (const entry of [...persisted, ...fromProject]) {
+      if (entry?.id && !seen.has(entry.id)) {
+        seen.add(entry.id);
+        merged.push(entry);
+      }
+    }
+    return merged.sort((a, b) => (b.ts || "").localeCompare(a.ts || "")).slice(0, HYDRA_AUDIT_MAX_ENTRIES);
+  });
   const [lastCheck, setLastCheck] = useState([]);
   const [settings, setSettings] = useState(activeProjectOnLoad?.settings || DEFAULT_SETTINGS);
 
@@ -5001,6 +5070,10 @@ function App() {
   }, [users]);
 
   useEffect(() => {
+    saveHydraAudit(audit);
+  }, [audit]);
+
+  useEffect(() => {
     if (!activePerson || !activeProjectId || userCanAccessProject(activePerson, activeProjectId)) return;
     const fallback = visibleProjectsForUser(projects, activePerson)[0];
     if (fallback) switchProject(fallback.id);
@@ -5022,7 +5095,7 @@ function App() {
       return;
     }
     const role = getRoleById(user.roleId);
-    if (loginPin.trim() !== user.pin) {
+    if (!verifyCredentials(user, loginPin)) {
       setLoginError("PIN o contrasena incorrecta para el usuario seleccionado.");
       return;
     }
