@@ -5459,7 +5459,7 @@ function App() {
     if (!window.confirm("Borrar el guardado local? No borra lo que ves ahora, solo la copia automática del navegador.")) return;
     clearHydraProjectsSave();
     setStorageStatus("Guardado multi-proyecto borrado. El proyecto actual sigue abierto.");
-    addLog("Guardado multi-proyecto borrado.");
+    addLog("Guardado multi-proyecto borrado.", { category: "guardado" });
   }
 
 
@@ -5469,7 +5469,7 @@ function App() {
     setCrossings((old) => [...old, crossing]);
     setSelectedId(id);
     setCorridorIds((old) => old.length < 5 ? [...old, id] : old);
-    addLog(`Añadido ${crossing.name}.`);
+    addLog(`Añadido ${crossing.name}.`, { category: "cruce" });
   }
 
   function addCrossingFromPanel() {
@@ -5485,14 +5485,14 @@ function App() {
 
   function toggleCorridor(id) {
     setCorridorIds((old) => old.includes(id) ? old.filter((item) => item !== id) : old.length < 5 ? [...old, id] : old);
-    addLog(`Corredor actualizado con ${id}.`);
+    addLog(`Corredor actualizado con ${id}.`, { category: "corredor" });
   }
 
   function onMarkerLinkClick(id) {
     setSelectedId(id);
     if (!linkStartId) {
       setLinkStartId(id);
-      addLog(`Inicio de enlace manual en ${id}.`);
+      addLog(`Inicio de enlace manual en ${id}.`, { category: "corredor" });
       return;
     }
     if (linkStartId === id) {
@@ -5500,7 +5500,7 @@ function App() {
       return;
     }
     setManualLinks((old) => toggleLink(old, linkStartId, id));
-    addLog(`Enlace manual cambiado: ${linkStartId} ↔ ${id}.`);
+    addLog(`Enlace manual cambiado: ${linkStartId} ↔ ${id}.`, { category: "corredor" });
     setLinkStartId(null);
   }
 
@@ -5517,13 +5517,13 @@ function App() {
       if (index < 0) return c;
       return { ...c, linked: true, operatorManual: false, localMode: false, offset: index * 10 };
     }));
-    addLog(`Onda verde recalculada: ${ordered.join(" → ")}.`);
+    addLog(`Onda verde recalculada: ${ordered.join(" → ")}.`, { category: "corredor" });
   }
 
   function toggleManual() {
     if (!selected) return;
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, operatorManual: !c.operatorManual, linked: c.operatorManual } : c));
-    addLog(`Selector manual/auto cambiado en ${selected.id}.`);
+    addLog(`Selector manual/auto cambiado en ${selected.id}.`, { category: "cruce" });
   }
 
   function setRegulatorMode(id, manual) {
@@ -5534,7 +5534,7 @@ function App() {
       linked: manual ? false : true,
     } : c));
     setSettings((old) => ({ ...old, manualAssist: manual ? true : old.manualAssist }));
-    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programación automática.`);
+    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programación automática.`, { category: "cruce" });
   }
 
   function updateSelected(field, value) {
@@ -5552,7 +5552,7 @@ function App() {
     const newId = sanitizeCrossingId(rawNewId, oldId);
     if (!newId || newId === oldId) return;
     if (crossings.some((c) => c.id === newId && c.id !== oldId)) {
-      addLog(`ID ${newId} ya existe. No se ha cambiado el ID de ${oldId}.`);
+      addLog(`ID ${newId} ya existe. No se ha cambiado el ID de ${oldId}.`, { category: "cruce" });
       return;
     }
 
@@ -5565,7 +5565,7 @@ function App() {
       to: link.to === oldId ? newId : link.to,
     })));
     setLinkStartId((current) => current === oldId ? newId : current);
-    addLog(`ID de cruce cambiado: ${oldId} → ${newId}.`);
+    addLog(`ID de cruce cambiado: ${oldId} → ${newId}.`, { category: "cruce" });
   }
 
   function setLocalMode(id, local) {
@@ -5575,7 +5575,7 @@ function App() {
       operatorManual: local ? false : c.operatorManual,
       linked: local ? false : c.linked,
     } : c));
-    addLog(local ? `Regulador ${id}: automático local.` : `Regulador ${id}: sale de modo local.`);
+    addLog(local ? `Regulador ${id}: automático local.` : `Regulador ${id}: sale de modo local.`, { category: "cruce" });
   }
 
   function useFirstNCorridor(count) {
@@ -5585,18 +5585,18 @@ function App() {
       .map((crossing) => crossing.id);
     setCorridorIds(ordered);
     setCrossings((old) => old.map((crossing) => ({ ...crossing, linked: ordered.includes(crossing.id) })));
-    addLog(`Cruces seleccionados: ${ordered.join(" → ") || "vacío"}.`);
+    addLog(`Cruces seleccionados: ${ordered.join(" → ") || "vacío"}.`, { category: "corredor" });
   }
 
   function orderCorridorByMap() {
     const ordered = sortCrossingIdsByMap(crossings, corridorIds);
     setCorridorIds(ordered);
-    addLog(`Corredor ordenado por mapa: ${ordered.join(" → ") || "vacío"}.`);
+    addLog(`Corredor ordenado por mapa: ${ordered.join(" → ") || "vacío"}.`, { category: "corredor" });
   }
 
   function setGeometry(id, geometryType) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, geometry: makeGeometry(geometryType) } : c));
-    addLog(`Geometría de ${id} cambiada a ${GEOMETRIES[geometryType]}.`);
+    addLog(`Geometría de ${id} cambiada a ${GEOMETRIES[geometryType]}.`, { category: "cruce" });
   }
 
   function updateGeometry(id, geometry) {
@@ -5613,18 +5613,18 @@ function App() {
     setManualLinks((old) => removeLinksForCrossing(old, id));
     setCorridorIds((old) => old.filter((item) => item !== id));
     setSelectedId(remaining[0]?.id || null);
-    addLog(`Eliminado cruce ${id}. Punto de restauración creado.`);
+    addLog(`Eliminado cruce ${id}. Punto de restauración creado.`, { category: "cruce" });
     setStorageStatus(`Cruce ${id} eliminado. Puedes restaurar el punto anterior.`);
   }
 
   function manualVehicle(id, direction, amount) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, queues: { ...c.queues, [direction]: clamp(c.queues[direction] + amount, 0, MAX_QUEUE) } } : c));
-    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehículo(s).`);
+    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehículo(s).`, { category: "trafico" });
   }
 
   function requestPedestrian(id, direction) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, pedestrianRequests: { ...c.pedestrianRequests, [direction]: clamp(c.pedestrianRequests[direction] + 1, 0, 9) } } : c));
-    addLog(`Petición peatonal ${id}/${direction}.`);
+    addLog(`Petición peatonal ${id}/${direction}.`, { category: "trafico" });
   }
 
   function setArrivalRate(id, direction, value) {
@@ -5633,7 +5633,7 @@ function App() {
 
   function setDemandPlan(id, plan) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, demandPlan: plan } : c));
-    addLog(`Plan de demanda ${id}: ${demandPlanLabel(plan)}.`);
+    addLog(`Plan de demanda ${id}: ${demandPlanLabel(plan)}.`, { category: "trafico" });
   }
 
   function setDemandFactor(id, value) {
@@ -5643,7 +5643,7 @@ function App() {
 
   function toggleHardwareFlag(id, field) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, hardware: { ...c.hardware, [field]: !c.hardware[field] } } : c));
-    addLog(`Hardware ${id}/${field} cambiado.`);
+    addLog(`Hardware ${id}/${field} cambiado.`, { category: "hardware" });
   }
 
   function toggleOpticFault(id, opticKey) {
@@ -5654,17 +5654,17 @@ function App() {
       else faults[opticKey] = "sin_consumo";
       return { ...c, hardware: { ...c.hardware, opticFaults: faults } };
     }));
-    addLog(`Óptica ${id}/${opticKey} cambiada.`);
+    addLog(`Óptica ${id}/${opticKey} cambiada.`, { category: "hardware" });
   }
 
   function toggleCamera(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, enabled: !camera.enabled } : camera) } : c));
-    addLog(`Cámara ${id}/${cameraId} activada/desactivada.`);
+    addLog(`Cámara ${id}/${cameraId} activada/desactivada.`, { category: "camara" });
   }
 
   function toggleCameraOk(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, ok: !camera.ok } : camera) } : c));
-    addLog(`Estado de cámara ${id}/${cameraId} cambiado.`);
+    addLog(`Estado de cámara ${id}/${cameraId} cambiado.`, { category: "camara" });
   }
 
   function addCamera(id) {
@@ -5673,7 +5673,7 @@ function App() {
       const camId = `CAM${c.cameras.length + 1}`;
       return { ...c, cameras: [...c.cameras, makeCamera(camId, `Cámara ${camId}`, c.cameras.length % 2 === 0 ? "NS" : "EW")] };
     }));
-    addLog(`Añadida cámara a ${id}.`);
+    addLog(`Añadida cámara a ${id}.`, { category: "camara" });
   }
 
   function removeCamera(id, cameraId) {
@@ -5682,7 +5682,7 @@ function App() {
     const cameraName = camera?.name || cameraId;
     if (!window.confirm(`¿Quieres quitar la cámara "${cameraName}"?`)) return;
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.filter((item) => item.id !== cameraId) } : c));
-    addLog(`Quitada cámara ${id}/${cameraName}.`);
+    addLog(`Quitada cámara ${id}/${cameraName}.`, { category: "camara" });
   }
 
   function safeManualStep() {
@@ -5690,27 +5690,27 @@ function App() {
     if (!settings.manualAssist || !selectedSignal) return;
     const jump = Math.max(1, selectedSignal.remaining);
     setTick((old) => old + jump);
-    addLog(`Manual asistido: avance seguro en ${selected.id}.`);
+    addLog(`Manual asistido: avance seguro en ${selected.id}.`, { category: "cruce" });
   }
 
   function activateFaultMode() {
     if (!selected) return;
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, localMode: true, operatorManual: true, linked: false } : c));
     setSettings((old) => ({ ...old, manualAssist: true, adaptive: false }));
-    addLog(`Modo avería local activado en ${selected.id}.`);
+    addLog(`Modo avería local activado en ${selected.id}.`, { category: "cruce" });
   }
 
   function clearActiveQueue() {
     if (!selected || !settings.manualAssist) return;
     const dir = selected.queues.NS >= selected.queues.EW ? "NS" : "EW";
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, queues: { ...c.queues, [dir]: clamp(c.queues[dir] - 8, 0, MAX_QUEUE) } } : c));
-    addLog(`Manual asistido: prioridad a cola ${selected.id}/${dir}.`);
+    addLog(`Manual asistido: prioridad a cola ${selected.id}/${dir}.`, { category: "cruce" });
   }
 
   function runCheck() {
     const issues = validateSystem(crossings, manualLinks, corridorIds, signals, settings);
     setLastCheck(issues);
-    addLog(`Comprobación ejecutada: ${issues.length} incidencia(s).`);
+    addLog(`Comprobación ejecutada: ${issues.length} incidencia(s).`, { category: "sistema" });
   }
 
   function reset() {
@@ -5743,7 +5743,7 @@ function App() {
       console.error("No se pudo copiar JSON:", error, data);
       alert("No se pudo copiar al portapapeles. El JSON se ha escrito en la consola del navegador.");
     }
-    addLog("Configuración exportada a JSON.");
+    addLog("Configuración exportada a JSON.", { category: "sistema" });
   }
 
   const selectedSignal = selected ? signals[selected.id] : null;
