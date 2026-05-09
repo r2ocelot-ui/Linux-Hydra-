@@ -1,0 +1,64 @@
+name: Deploy a GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/fix-empty-text-blocks-3xL4R
+    paths:
+      - "versions/R29/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: "Revision a desplegar (carpeta dentro de versions/, p.ej. R29)"
+        required: false
+        default: "R29"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      REVISION: ${{ github.event.inputs.revision || 'R29' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Resolver carpeta de release
+        id: paths
+        run: |
+          set -e
+          REV_LOWER=$(echo "${REVISION}" | tr '[:upper:]' '[:lower:]')
+          RELEASE_DIR=$(ls -d versions/${REVISION}/hydra-traffic-lab-*-${REV_LOWER}-release | head -n1)
+          if [ ! -d "$RELEASE_DIR" ]; then
+            echo "::error::No se encontro la carpeta de release para revision ${REVISION}"
+            exit 1
+          fi
+          echo "release_dir=${RELEASE_DIR}" >> "$GITHUB_OUTPUT"
+          echo "Selected: ${RELEASE_DIR}"
+
+      - name: Install dependencies
+        working-directory: ${{ steps.paths.outputs.release_dir }}
+        run: npm install
+
+      - name: Build con base path para GitHub Pages
+        working-directory: ${{ steps.paths.outputs.release_dir }}
+        run: npx vite build --base /Linux-Hydra-/
+
+      - name: Deploy a la rama gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ steps.paths.outputs.release_dir }}/dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: ${{ env.REVISION }} (${{ github.sha }})"
