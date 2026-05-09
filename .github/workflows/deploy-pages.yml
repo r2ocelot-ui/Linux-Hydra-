@@ -5,14 +5,14 @@ on:
     branches:
       - claude/fix-empty-text-blocks-3xL4R
     paths:
-      - "versions/R30/**"
+      - "versions/R31/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
     inputs:
       revision:
         description: "Revision a desplegar (carpeta dentro de versions/, p.ej. R30)"
         required: false
-        default: "R30"
+        default: "R31"
 
 permissions:
   contents: write
@@ -25,7 +25,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      REVISION: ${{ github.event.inputs.revision || 'R30' }}
+      REVISION: ${{ github.event.inputs.revision || 'R31' }}
     steps:
       - uses: actions/checkout@v4
 
