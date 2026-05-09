@@ -13,10 +13,12 @@ const HYDRA_RESTORE_KEY = "hydraTrafficLab.f2.restorePoints";
 const HYDRA_SECTION_KEY = "hydraTrafficLab.f2.activeSection";
 const HYDRA_SESSION_KEY = "hydraTrafficLab.f2.session";
 const HYDRA_USERS_KEY = "hydraTrafficLab.f2.users";
+const HYDRA_AUDIT_KEY = "hydraTrafficLab.f2.audit";
+const HYDRA_AUDIT_MAX_ENTRIES = 400;
 const HYDRA_MAX_RESTORE_POINTS = 10;
 const HYDRA_SECTIONS = ["Inicio", "Mapa del sistema", "Cruces", "Corredores", "Escenarios", "Informes", "Eventos", "Dispositivos", "Cámaras", "Configuración", "Usuarios", "Sistema"];
-const HYDRA_VERSION_LABEL = "F2-V8.3-M1-R26";
-const HYDRA_VERSION_SLUG = "f2-v8-3-m1-r26-release";
+const HYDRA_VERSION_LABEL = "F2-V8.3-M1-R27";
+const HYDRA_VERSION_SLUG = "f2-v8-3-m1-r27-release";
 const DEFAULT_SETTINGS = {
   adaptive: true,
   linkedMode: true,
@@ -543,6 +545,38 @@ function clearHydraSession() {
   if (typeof window === "undefined" || !storageAvailable()) return false;
   window.localStorage.removeItem(HYDRA_SESSION_KEY);
   return true;
+}
+
+// Punto de extensión para V9: sustituir comparación plana por bcrypt/argon2
+// cuando exista backend. Mantener firma estable.
+function verifyCredentials(user, pin) {
+  if (!user || user.active === false) return false;
+  return String(pin ?? "").trim() === String(user.pin ?? "");
+}
+
+function loadHydraAudit() {
+  if (typeof window === "undefined" || !storageAvailable()) return [];
+  try {
+    const raw = window.localStorage.getItem(HYDRA_AUDIT_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn("No se pudo cargar auditoria Hydra:", error);
+    return [];
+  }
+}
+
+function saveHydraAudit(audit) {
+  if (typeof window === "undefined" || !storageAvailable()) return false;
+  try {
+    const trimmed = Array.isArray(audit) ? audit.slice(0, HYDRA_AUDIT_MAX_ENTRIES) : [];
+    window.localStorage.setItem(HYDRA_AUDIT_KEY, JSON.stringify(trimmed));
+    return true;
+  } catch (error) {
+    console.warn("No se pudo guardar auditoria Hydra:", error);
+    return false;
+  }
 }
 
 function formatHydraDate(iso) {
@@ -2815,6 +2849,26 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
       && (category === "todas" || entry.category === category)
       && (result === "todos" || entry.result === result);
   });
+  function exportFiltered() {
+    if (typeof window === "undefined" || !filtered.length) return;
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: HYDRA_VERSION_LABEL,
+      filters: { query, category, result },
+      total: audit.length,
+      filtered: filtered.length,
+      entries: filtered,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `hydra-audit-${HYDRA_VERSION_SLUG}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
   return (
     <Panel className="audit-panel">
       <div className="panel-header">
@@ -2824,6 +2878,7 @@ function AuditPanel({ audit, activeRole, onClear, onPermissionDenied }) {
         </div>
         <div className="panel-tools">
           <span className="tag">{filtered.length}/{audit.length}</span>
+          <PermissionButton role={activeRole} permission="viewReports" onDenied={onPermissionDenied} onClick={exportFiltered} action="exportar auditoria" variant="secondary" disabled={filtered.length === 0}>Exportar JSON</PermissionButton>
           <PermissionButton role={activeRole} permission="manageUsers" onDenied={onPermissionDenied} onClick={onClear} action="limpiar auditoria" variant="secondary">Limpiar auditoria</PermissionButton>
         </div>
       </div>
@@ -4746,6 +4801,56 @@ function LoginModalR26({ open, users, projects, selectedUserId, pin, error, onUs
   );
 }
 
+function UserFormModal({ open, mode, draft, error, allowedRoles, onChange, onSubmit, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="access-modal-backdrop" role="presentation">
+      <div className="access-modal" role="dialog" aria-modal="true" aria-label="Formulario de usuario">
+        <div className="access-modal-header">
+          <div>
+            <span>Usuario personal</span>
+            <h2>{mode === "edit" ? "Editar usuario" : "Crear usuario"}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar formulario">x</button>
+        </div>
+        <form className="access-form" onSubmit={onSubmit}>
+          <label>
+            Nombre de la persona
+            <input type="text" value={draft.name} onChange={(event) => onChange("name", event.target.value)} placeholder="Nombre y apellidos" required autoFocus />
+          </label>
+          <label>
+            Usuario de acceso
+            <input type="text" value={draft.username} onChange={(event) => onChange("username", event.target.value)} placeholder="usuario.de.acceso" required />
+          </label>
+          <label>
+            Rol asignado
+            <select value={draft.roleId} onChange={(event) => onChange("roleId", event.target.value)}>
+              {allowedRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+              {allowedRoles.length === 0 && <option value="">Sin roles permitidos</option>}
+            </select>
+          </label>
+          <label>
+            PIN / contrasena demo
+            <input type="password" value={draft.pin} onChange={(event) => onChange("pin", event.target.value)} placeholder="PIN o contrasena local" required />
+          </label>
+          {mode === "edit" && (
+            <label className="user-form-active-row">
+              <input type="checkbox" checked={draft.active !== false} onChange={(event) => onChange("active", event.target.checked)} />
+              <span>Usuario activo</span>
+            </label>
+          )}
+          {error && <div className="access-error">{error}</div>}
+          <div className="access-actions">
+            <Button type="submit" disabled={allowedRoles.length === 0}>{mode === "edit" ? "Guardar cambios" : "Crear usuario"}</Button>
+            <Button type="button" onClick={onClose} variant="secondary">Cancelar</Button>
+          </div>
+        </form>
+        <p className="access-warning">PIN demo en texto plano: el hash real (bcrypt/argon2) llega con backend en V9.</p>
+      </div>
+    </div>
+  );
+}
+
 function UsersPanelR26({
   activeRole,
   activeUser,
@@ -4765,9 +4870,26 @@ function UsersPanelR26({
   const permissionKeys = Object.keys(HYDRA_PERMISSION_LABELS);
   const isSuperadmin = activeRole?.id === "superadmin";
   const canManageAny = roleHasPermission(activeRole, "manageUsers") || roleHasPermission(activeRole, "manageProjectUsers");
-  const visibleUsers = isSuperadmin
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [cityFilter, setCityFilter] = useState("todas");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const baseVisibleUsers = isSuperadmin
     ? users
     : users.filter((user) => user.id === activePerson?.id || userCanAccessProject(user, activeProject?.id));
+  const visibleUsers = baseVisibleUsers.filter((user) => {
+    if (roleFilter !== "todos" && user.roleId !== roleFilter) return false;
+    if (cityFilter !== "todas") {
+      if (cityFilter === "*") {
+        if (!user.projectIds?.includes("*")) return false;
+      } else if (!user.projectIds?.includes(cityFilter) && !user.projectIds?.includes("*")) {
+        return false;
+      }
+    }
+    if (statusFilter === "activos" && user.active === false) return false;
+    if (statusFilter === "inactivos" && user.active !== false) return false;
+    return true;
+  });
+  const filterCityOptions = isSuperadmin ? projects : projects.filter((project) => userCanAccessProject(activePerson, project.id));
   const currentActivity = activePerson
     ? {
         userId: activePerson.id,
@@ -4800,7 +4922,24 @@ function UsersPanelR26({
         <Info title="Persona activa" value={activePerson?.name || "Sin sesion"} />
         <Info title="Rol" value={activeRole?.name || "Sin rol"} />
         <Info title="Ciudad activa" value={activeProject?.name || "Sin proyecto"} />
-        <Info title="Usuarios visibles" value={visibleUsers.length} />
+        <Info title="Usuarios visibles" value={`${visibleUsers.length}/${baseVisibleUsers.length}`} />
+      </div>
+
+      <div className="users-filters audit-filters">
+        <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} aria-label="Filtrar por rol">
+          <option value="todos">Todos los roles</option>
+          {HYDRA_ROLES.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+        </select>
+        <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Filtrar por ciudad">
+          <option value="todas">Todas las ciudades</option>
+          <option value="*">Acceso global (Superadmin)</option>
+          {filterCityOptions.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrar por estado">
+          <option value="todos">Todos los estados</option>
+          <option value="activos">Solo activos</option>
+          <option value="inactivos">Solo inactivos</option>
+        </select>
       </div>
 
       <div className="users-table-wrap">
@@ -4954,6 +5093,7 @@ function App() {
   const [loginUserId, setLoginUserId] = useState(savedSessionOnLoad?.userId || getFirstUserForRole(savedUsersOnLoad, savedSessionOnLoad?.roleId)?.id || savedUsersOnLoad.find((user) => user.active !== false)?.id || "");
   const [loginPin, setLoginPin] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [userFormState, setUserFormState] = useState({ open: false, mode: "create", userId: null, draft: { name: "", username: "", roleId: "viewer", pin: "1111", active: true }, error: "" });
   const [activeSection, setActiveSection] = useState(() => {
     if (typeof window === "undefined" || !storageAvailable()) return "Inicio";
     const stored = window.localStorage.getItem(HYDRA_SECTION_KEY);
@@ -4970,7 +5110,21 @@ function App() {
   const [linkMode, setLinkMode] = useState(false);
   const [linkStartId, setLinkStartId] = useState(null);
   const [log, setLog] = useState(activeProjectOnLoad?.log || [`${HYDRA_VERSION_LABEL} cargada: guardado multi-proyecto activo.`]);
-  const [audit, setAudit] = useState(activeProjectOnLoad?.audit || []);
+  const [audit, setAudit] = useState(() => {
+    const persisted = loadHydraAudit();
+    const fromProject = activeProjectOnLoad?.audit || [];
+    if (persisted.length === 0) return fromProject;
+    if (fromProject.length === 0) return persisted;
+    const seen = new Set();
+    const merged = [];
+    for (const entry of [...persisted, ...fromProject]) {
+      if (entry?.id && !seen.has(entry.id)) {
+        seen.add(entry.id);
+        merged.push(entry);
+      }
+    }
+    return merged.sort((a, b) => (b.ts || "").localeCompare(a.ts || "")).slice(0, HYDRA_AUDIT_MAX_ENTRIES);
+  });
   const [lastCheck, setLastCheck] = useState([]);
   const [settings, setSettings] = useState(activeProjectOnLoad?.settings || DEFAULT_SETTINGS);
 
@@ -5001,6 +5155,10 @@ function App() {
   }, [users]);
 
   useEffect(() => {
+    saveHydraAudit(audit);
+  }, [audit]);
+
+  useEffect(() => {
     if (!activePerson || !activeProjectId || userCanAccessProject(activePerson, activeProjectId)) return;
     const fallback = visibleProjectsForUser(projects, activePerson)[0];
     if (fallback) switchProject(fallback.id);
@@ -5022,7 +5180,7 @@ function App() {
       return;
     }
     const role = getRoleById(user.roleId);
-    if (loginPin.trim() !== user.pin) {
+    if (!verifyCredentials(user, loginPin)) {
       setLoginError("PIN o contrasena incorrecta para el usuario seleccionado.");
       return;
     }
@@ -5227,33 +5385,23 @@ function App() {
     setLog((old) => [`Proyecto renombrado: ${cleaned}.`, ...old].slice(0, 120));
   }
 
+  function userFormAllowedRoles() {
+    return HYDRA_ROLES.filter((role) => roleHasPermission(activeRole, "manageUsers") || roleLevel(activePerson?.roleId) > roleLevel(role.id));
+  }
+
   function createUser() {
     if (!roleHasPermission(activeRole, "manageUsers") && !roleHasPermission(activeRole, "manageProjectUsers")) {
       handlePermissionDenied("manageProjectUsers", "crear usuario");
       return;
     }
-    const name = window.prompt("Nombre de la persona", "Nuevo usuario");
-    if (name === null) return;
-    const username = window.prompt("Usuario de acceso", slugProjectName(name).replace(/-/g, "."));
-    if (username === null) return;
-    const allowedRoles = HYDRA_ROLES.filter((role) => roleHasPermission(activeRole, "manageUsers") || roleLevel(activePerson?.roleId) > roleLevel(role.id));
-    const roleId = window.prompt(`Rol (${allowedRoles.map((role) => role.id).join(", ")})`, allowedRoles[0]?.id || "viewer");
-    if (roleId === null) return;
-    const selectedRole = allowedRoles.find((role) => role.id === roleId) || allowedRoles[0];
-    const pin = window.prompt("PIN / contrasena demo", "1111");
-    if (pin === null) return;
-    const user = {
-      id: `user-${slugProjectName(username)}-${Date.now().toString(36)}`,
-      name: cleanProjectName(name, "Nuevo usuario"),
-      username: String(username || "").trim() || `usuario${users.length + 1}`,
-      roleId: selectedRole.id,
-      pin: String(pin || "1111"),
-      projectIds: roleHasPermission(activeRole, "manageUsers") && selectedRole.id === "superadmin" ? ["*"] : [activeProjectId],
-      active: true,
-      projectPermissions: {},
-    };
-    setUsers((old) => [...old, user]);
-    addLog(`Usuario creado: ${user.name} (${selectedRole.name}).`, { category: "permisos", action: "crear usuario", target: user.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    const allowed = userFormAllowedRoles();
+    setUserFormState({
+      open: true,
+      mode: "create",
+      userId: null,
+      draft: { name: "Nuevo usuario", username: `usuario${users.length + 1}`, roleId: allowed[0]?.id || "viewer", pin: "1111", active: true },
+      error: "",
+    });
   }
 
   function editUser(userId) {
@@ -5262,27 +5410,94 @@ function App() {
       handlePermissionDenied("manageProjectUsers", "editar usuario");
       return;
     }
-    const name = window.prompt("Nombre de la persona", target.name);
-    if (name === null) return;
-    const username = window.prompt("Usuario de acceso", target.username);
-    if (username === null) return;
-    const roleId = window.prompt("Rol asignado", target.roleId);
-    if (roleId === null) return;
-    const nextRole = getRoleById(roleId) || getRoleById(target.roleId);
-    if (!roleHasPermission(activeRole, "manageUsers") && roleLevel(activePerson?.roleId) <= roleLevel(nextRole.id)) {
-      handlePermissionDenied("manageProjectUsers", "asignar rol superior o igual");
+    setUserFormState({
+      open: true,
+      mode: "edit",
+      userId,
+      draft: { name: target.name, username: target.username, roleId: target.roleId, pin: target.pin, active: target.active !== false },
+      error: "",
+    });
+  }
+
+  function updateUserFormField(field, value) {
+    setUserFormState((state) => ({ ...state, draft: { ...state.draft, [field]: value }, error: "" }));
+  }
+
+  function closeUserForm() {
+    setUserFormState((state) => ({ ...state, open: false, error: "" }));
+  }
+
+  function submitUserForm(event) {
+    event.preventDefault();
+    const { mode, userId, draft } = userFormState;
+    const cleanName = cleanProjectName(draft.name, mode === "edit" ? "Usuario" : "Nuevo usuario");
+    const cleanUsername = String(draft.username || "").trim();
+    if (!cleanUsername) {
+      setUserFormState((state) => ({ ...state, error: "El usuario de acceso no puede estar vacio." }));
       return;
     }
-    const pin = window.prompt("PIN / contrasena demo", target.pin);
-    if (pin === null) return;
-    setUsers((old) => old.map((user) => user.id === userId ? {
-      ...user,
-      name: cleanProjectName(name, target.name),
-      username: String(username || target.username).trim(),
-      roleId: nextRole.id,
-      pin: String(pin || target.pin),
-    } : user));
-    addLog(`Usuario editado: ${target.username}.`, { category: "permisos", action: "editar usuario", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    const cleanPin = String(draft.pin || "").trim();
+    if (!cleanPin) {
+      setUserFormState((state) => ({ ...state, error: "El PIN demo no puede estar vacio." }));
+      return;
+    }
+    const targetRole = getRoleById(draft.roleId);
+    if (!targetRole) {
+      setUserFormState((state) => ({ ...state, error: "Rol invalido." }));
+      return;
+    }
+    if (!roleHasPermission(activeRole, "manageUsers") && roleLevel(activePerson?.roleId) <= roleLevel(targetRole.id)) {
+      setUserFormState((state) => ({ ...state, error: "No puedes asignar un rol igual o superior al tuyo." }));
+      return;
+    }
+    if (mode === "create") {
+      const usernameTaken = users.some((user) => user.username === cleanUsername);
+      if (usernameTaken) {
+        setUserFormState((state) => ({ ...state, error: "Ese usuario de acceso ya existe." }));
+        return;
+      }
+      const user = {
+        id: `user-${slugProjectName(cleanUsername)}-${Date.now().toString(36)}`,
+        name: cleanName,
+        username: cleanUsername,
+        roleId: targetRole.id,
+        pin: cleanPin,
+        projectIds: roleHasPermission(activeRole, "manageUsers") && targetRole.id === "superadmin" ? ["*"] : [activeProjectId],
+        active: true,
+        projectPermissions: {},
+      };
+      setUsers((old) => [...old, user]);
+      addLog(`Usuario creado: ${user.name} (${targetRole.name}).`, { category: "permisos", action: "crear usuario", target: user.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    } else {
+      const target = getUserById(users, userId);
+      if (!target) {
+        setUserFormState((state) => ({ ...state, error: "El usuario ya no existe." }));
+        return;
+      }
+      const usernameTaken = users.some((user) => user.id !== userId && user.username === cleanUsername);
+      if (usernameTaken) {
+        setUserFormState((state) => ({ ...state, error: "Ese usuario de acceso ya existe." }));
+        return;
+      }
+      const willDeactivate = draft.active === false && target.active !== false;
+      if (willDeactivate && target.roleId === "superadmin") {
+        const activeSuperadmins = users.filter((user) => user.roleId === "superadmin" && user.active !== false).length;
+        if (activeSuperadmins <= 1) {
+          setUserFormState((state) => ({ ...state, error: "No se puede desactivar el ultimo Superadministrador activo." }));
+          return;
+        }
+      }
+      setUsers((old) => old.map((user) => user.id === userId ? {
+        ...user,
+        name: cleanName,
+        username: cleanUsername,
+        roleId: targetRole.id,
+        pin: cleanPin,
+        active: draft.active !== false,
+      } : user));
+      addLog(`Usuario editado: ${target.username}.`, { category: "permisos", action: "editar usuario", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    }
+    setUserFormState((state) => ({ ...state, open: false, error: "" }));
   }
 
   function toggleUser(userId) {
@@ -5386,7 +5601,7 @@ function App() {
     if (!window.confirm("Borrar el guardado local? No borra lo que ves ahora, solo la copia automática del navegador.")) return;
     clearHydraProjectsSave();
     setStorageStatus("Guardado multi-proyecto borrado. El proyecto actual sigue abierto.");
-    addLog("Guardado multi-proyecto borrado.");
+    addLog("Guardado multi-proyecto borrado.", { category: "guardado" });
   }
 
 
@@ -5396,7 +5611,7 @@ function App() {
     setCrossings((old) => [...old, crossing]);
     setSelectedId(id);
     setCorridorIds((old) => old.length < 5 ? [...old, id] : old);
-    addLog(`Añadido ${crossing.name}.`);
+    addLog(`Añadido ${crossing.name}.`, { category: "cruce" });
   }
 
   function addCrossingFromPanel() {
@@ -5412,14 +5627,14 @@ function App() {
 
   function toggleCorridor(id) {
     setCorridorIds((old) => old.includes(id) ? old.filter((item) => item !== id) : old.length < 5 ? [...old, id] : old);
-    addLog(`Corredor actualizado con ${id}.`);
+    addLog(`Corredor actualizado con ${id}.`, { category: "corredor" });
   }
 
   function onMarkerLinkClick(id) {
     setSelectedId(id);
     if (!linkStartId) {
       setLinkStartId(id);
-      addLog(`Inicio de enlace manual en ${id}.`);
+      addLog(`Inicio de enlace manual en ${id}.`, { category: "corredor" });
       return;
     }
     if (linkStartId === id) {
@@ -5427,7 +5642,7 @@ function App() {
       return;
     }
     setManualLinks((old) => toggleLink(old, linkStartId, id));
-    addLog(`Enlace manual cambiado: ${linkStartId} ↔ ${id}.`);
+    addLog(`Enlace manual cambiado: ${linkStartId} ↔ ${id}.`, { category: "corredor" });
     setLinkStartId(null);
   }
 
@@ -5444,13 +5659,13 @@ function App() {
       if (index < 0) return c;
       return { ...c, linked: true, operatorManual: false, localMode: false, offset: index * 10 };
     }));
-    addLog(`Onda verde recalculada: ${ordered.join(" → ")}.`);
+    addLog(`Onda verde recalculada: ${ordered.join(" → ")}.`, { category: "corredor" });
   }
 
   function toggleManual() {
     if (!selected) return;
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, operatorManual: !c.operatorManual, linked: c.operatorManual } : c));
-    addLog(`Selector manual/auto cambiado en ${selected.id}.`);
+    addLog(`Selector manual/auto cambiado en ${selected.id}.`, { category: "cruce" });
   }
 
   function setRegulatorMode(id, manual) {
@@ -5461,7 +5676,7 @@ function App() {
       linked: manual ? false : true,
     } : c));
     setSettings((old) => ({ ...old, manualAssist: manual ? true : old.manualAssist }));
-    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programación automática.`);
+    addLog(manual ? `Regulador ${id}: MANUAL/persona.` : `Regulador ${id}: programación automática.`, { category: "cruce" });
   }
 
   function updateSelected(field, value) {
@@ -5479,7 +5694,7 @@ function App() {
     const newId = sanitizeCrossingId(rawNewId, oldId);
     if (!newId || newId === oldId) return;
     if (crossings.some((c) => c.id === newId && c.id !== oldId)) {
-      addLog(`ID ${newId} ya existe. No se ha cambiado el ID de ${oldId}.`);
+      addLog(`ID ${newId} ya existe. No se ha cambiado el ID de ${oldId}.`, { category: "cruce" });
       return;
     }
 
@@ -5492,7 +5707,7 @@ function App() {
       to: link.to === oldId ? newId : link.to,
     })));
     setLinkStartId((current) => current === oldId ? newId : current);
-    addLog(`ID de cruce cambiado: ${oldId} → ${newId}.`);
+    addLog(`ID de cruce cambiado: ${oldId} → ${newId}.`, { category: "cruce" });
   }
 
   function setLocalMode(id, local) {
@@ -5502,7 +5717,7 @@ function App() {
       operatorManual: local ? false : c.operatorManual,
       linked: local ? false : c.linked,
     } : c));
-    addLog(local ? `Regulador ${id}: automático local.` : `Regulador ${id}: sale de modo local.`);
+    addLog(local ? `Regulador ${id}: automático local.` : `Regulador ${id}: sale de modo local.`, { category: "cruce" });
   }
 
   function useFirstNCorridor(count) {
@@ -5512,18 +5727,18 @@ function App() {
       .map((crossing) => crossing.id);
     setCorridorIds(ordered);
     setCrossings((old) => old.map((crossing) => ({ ...crossing, linked: ordered.includes(crossing.id) })));
-    addLog(`Cruces seleccionados: ${ordered.join(" → ") || "vacío"}.`);
+    addLog(`Cruces seleccionados: ${ordered.join(" → ") || "vacío"}.`, { category: "corredor" });
   }
 
   function orderCorridorByMap() {
     const ordered = sortCrossingIdsByMap(crossings, corridorIds);
     setCorridorIds(ordered);
-    addLog(`Corredor ordenado por mapa: ${ordered.join(" → ") || "vacío"}.`);
+    addLog(`Corredor ordenado por mapa: ${ordered.join(" → ") || "vacío"}.`, { category: "corredor" });
   }
 
   function setGeometry(id, geometryType) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, geometry: makeGeometry(geometryType) } : c));
-    addLog(`Geometría de ${id} cambiada a ${GEOMETRIES[geometryType]}.`);
+    addLog(`Geometría de ${id} cambiada a ${GEOMETRIES[geometryType]}.`, { category: "cruce" });
   }
 
   function updateGeometry(id, geometry) {
@@ -5540,18 +5755,18 @@ function App() {
     setManualLinks((old) => removeLinksForCrossing(old, id));
     setCorridorIds((old) => old.filter((item) => item !== id));
     setSelectedId(remaining[0]?.id || null);
-    addLog(`Eliminado cruce ${id}. Punto de restauración creado.`);
+    addLog(`Eliminado cruce ${id}. Punto de restauración creado.`, { category: "cruce" });
     setStorageStatus(`Cruce ${id} eliminado. Puedes restaurar el punto anterior.`);
   }
 
   function manualVehicle(id, direction, amount) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, queues: { ...c.queues, [direction]: clamp(c.queues[direction] + amount, 0, MAX_QUEUE) } } : c));
-    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehículo(s).`);
+    addLog(`Demanda ${id}/${direction}: ${amount > 0 ? "+" : ""}${amount} vehículo(s).`, { category: "trafico" });
   }
 
   function requestPedestrian(id, direction) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, pedestrianRequests: { ...c.pedestrianRequests, [direction]: clamp(c.pedestrianRequests[direction] + 1, 0, 9) } } : c));
-    addLog(`Petición peatonal ${id}/${direction}.`);
+    addLog(`Petición peatonal ${id}/${direction}.`, { category: "trafico" });
   }
 
   function setArrivalRate(id, direction, value) {
@@ -5560,7 +5775,7 @@ function App() {
 
   function setDemandPlan(id, plan) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, demandPlan: plan } : c));
-    addLog(`Plan de demanda ${id}: ${demandPlanLabel(plan)}.`);
+    addLog(`Plan de demanda ${id}: ${demandPlanLabel(plan)}.`, { category: "trafico" });
   }
 
   function setDemandFactor(id, value) {
@@ -5570,7 +5785,7 @@ function App() {
 
   function toggleHardwareFlag(id, field) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, hardware: { ...c.hardware, [field]: !c.hardware[field] } } : c));
-    addLog(`Hardware ${id}/${field} cambiado.`);
+    addLog(`Hardware ${id}/${field} cambiado.`, { category: "hardware" });
   }
 
   function toggleOpticFault(id, opticKey) {
@@ -5581,17 +5796,17 @@ function App() {
       else faults[opticKey] = "sin_consumo";
       return { ...c, hardware: { ...c.hardware, opticFaults: faults } };
     }));
-    addLog(`Óptica ${id}/${opticKey} cambiada.`);
+    addLog(`Óptica ${id}/${opticKey} cambiada.`, { category: "hardware" });
   }
 
   function toggleCamera(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, enabled: !camera.enabled } : camera) } : c));
-    addLog(`Cámara ${id}/${cameraId} activada/desactivada.`);
+    addLog(`Cámara ${id}/${cameraId} activada/desactivada.`, { category: "camara" });
   }
 
   function toggleCameraOk(id, cameraId) {
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.map((camera) => camera.id === cameraId ? { ...camera, ok: !camera.ok } : camera) } : c));
-    addLog(`Estado de cámara ${id}/${cameraId} cambiado.`);
+    addLog(`Estado de cámara ${id}/${cameraId} cambiado.`, { category: "camara" });
   }
 
   function addCamera(id) {
@@ -5600,7 +5815,7 @@ function App() {
       const camId = `CAM${c.cameras.length + 1}`;
       return { ...c, cameras: [...c.cameras, makeCamera(camId, `Cámara ${camId}`, c.cameras.length % 2 === 0 ? "NS" : "EW")] };
     }));
-    addLog(`Añadida cámara a ${id}.`);
+    addLog(`Añadida cámara a ${id}.`, { category: "camara" });
   }
 
   function removeCamera(id, cameraId) {
@@ -5609,7 +5824,7 @@ function App() {
     const cameraName = camera?.name || cameraId;
     if (!window.confirm(`¿Quieres quitar la cámara "${cameraName}"?`)) return;
     setCrossings((old) => old.map((c) => c.id === id ? { ...c, cameras: c.cameras.filter((item) => item.id !== cameraId) } : c));
-    addLog(`Quitada cámara ${id}/${cameraName}.`);
+    addLog(`Quitada cámara ${id}/${cameraName}.`, { category: "camara" });
   }
 
   function safeManualStep() {
@@ -5617,27 +5832,27 @@ function App() {
     if (!settings.manualAssist || !selectedSignal) return;
     const jump = Math.max(1, selectedSignal.remaining);
     setTick((old) => old + jump);
-    addLog(`Manual asistido: avance seguro en ${selected.id}.`);
+    addLog(`Manual asistido: avance seguro en ${selected.id}.`, { category: "cruce" });
   }
 
   function activateFaultMode() {
     if (!selected) return;
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, localMode: true, operatorManual: true, linked: false } : c));
     setSettings((old) => ({ ...old, manualAssist: true, adaptive: false }));
-    addLog(`Modo avería local activado en ${selected.id}.`);
+    addLog(`Modo avería local activado en ${selected.id}.`, { category: "cruce" });
   }
 
   function clearActiveQueue() {
     if (!selected || !settings.manualAssist) return;
     const dir = selected.queues.NS >= selected.queues.EW ? "NS" : "EW";
     setCrossings((old) => old.map((c) => c.id === selected.id ? { ...c, queues: { ...c.queues, [dir]: clamp(c.queues[dir] - 8, 0, MAX_QUEUE) } } : c));
-    addLog(`Manual asistido: prioridad a cola ${selected.id}/${dir}.`);
+    addLog(`Manual asistido: prioridad a cola ${selected.id}/${dir}.`, { category: "cruce" });
   }
 
   function runCheck() {
     const issues = validateSystem(crossings, manualLinks, corridorIds, signals, settings);
     setLastCheck(issues);
-    addLog(`Comprobación ejecutada: ${issues.length} incidencia(s).`);
+    addLog(`Comprobación ejecutada: ${issues.length} incidencia(s).`, { category: "sistema" });
   }
 
   function reset() {
@@ -5670,7 +5885,7 @@ function App() {
       console.error("No se pudo copiar JSON:", error, data);
       alert("No se pudo copiar al portapapeles. El JSON se ha escrito en la consola del navegador.");
     }
-    addLog("Configuración exportada a JSON.");
+    addLog("Configuración exportada a JSON.", { category: "sistema" });
   }
 
   const selectedSignal = selected ? signals[selected.id] : null;
@@ -6211,6 +6426,16 @@ function App() {
           onPinChange={(value) => { setLoginPin(value); setLoginError(""); }}
           onSubmit={submitLogin}
           onClose={() => { setLoginOpen(false); setLoginError(""); }}
+        />
+        <UserFormModal
+          open={userFormState.open}
+          mode={userFormState.mode}
+          draft={userFormState.draft}
+          error={userFormState.error}
+          allowedRoles={userFormAllowedRoles()}
+          onChange={updateUserFormField}
+          onSubmit={submitUserForm}
+          onClose={closeUserForm}
         />
     </main>
   );
