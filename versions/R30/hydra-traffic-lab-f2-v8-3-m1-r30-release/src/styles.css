@@ -5128,3 +5128,13 @@ html, body, #root, .hydra-app, .app-shell, .control-shell, .control-main, .contr
 .users-table .inline-action-row button.danger:not(:disabled):hover {
   background: rgba(239, 68, 68, 0.18);
 }
+
+/* R30 fix: popover de ayuda renderizado por portal en body, posicion fixed
+   computada para escapar de cualquier overflow:hidden ancestro. */
+.help-popover.help-popover-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  z-index: 22000;
+}

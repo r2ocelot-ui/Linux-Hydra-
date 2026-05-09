@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createPortal } from "react-dom";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -2093,11 +2094,37 @@ function PermissionNote({ role, permission, compact = false }) {
 
 function HelpButton({ title, items = [] }) {
   const [open, setOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const popoverWidth = Math.min(330, window.innerWidth - 32);
+      // Anclamos arriba-derecha del boton, alineado a la derecha del propio boton.
+      const left = Math.max(16, Math.min(rect.right - popoverWidth, window.innerWidth - popoverWidth - 16));
+      const top = rect.bottom + 6;
+      setCoords({ top, left, width: popoverWidth });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
   return (
     <div className="help-button-wrap">
-      <button type="button" className="help-button" onClick={() => setOpen((value) => !value)} aria-label={`Ayuda: ${title}`}>?</button>
-      {open && (
-        <div className="help-popover">
+      <button ref={buttonRef} type="button" className="help-button" onClick={() => setOpen((value) => !value)} aria-label={`Ayuda: ${title}`}>?</button>
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          className="help-popover help-popover-fixed"
+          style={{ top: coords.top, left: coords.left, width: coords.width }}
+        >
           <div className="help-popover-title">
             <strong>{title}</strong>
             <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar ayuda">x</button>
@@ -2105,7 +2132,8 @@ function HelpButton({ title, items = [] }) {
           <ul>
             {items.map((item) => <li key={item}>{item}</li>)}
           </ul>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
