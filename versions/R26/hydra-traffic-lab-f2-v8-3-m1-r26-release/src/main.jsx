@@ -4801,6 +4801,56 @@ function LoginModalR26({ open, users, projects, selectedUserId, pin, error, onUs
   );
 }
 
+function UserFormModal({ open, mode, draft, error, allowedRoles, onChange, onSubmit, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="access-modal-backdrop" role="presentation">
+      <div className="access-modal" role="dialog" aria-modal="true" aria-label="Formulario de usuario">
+        <div className="access-modal-header">
+          <div>
+            <span>Usuario personal</span>
+            <h2>{mode === "edit" ? "Editar usuario" : "Crear usuario"}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar formulario">x</button>
+        </div>
+        <form className="access-form" onSubmit={onSubmit}>
+          <label>
+            Nombre de la persona
+            <input type="text" value={draft.name} onChange={(event) => onChange("name", event.target.value)} placeholder="Nombre y apellidos" required autoFocus />
+          </label>
+          <label>
+            Usuario de acceso
+            <input type="text" value={draft.username} onChange={(event) => onChange("username", event.target.value)} placeholder="usuario.de.acceso" required />
+          </label>
+          <label>
+            Rol asignado
+            <select value={draft.roleId} onChange={(event) => onChange("roleId", event.target.value)}>
+              {allowedRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+              {allowedRoles.length === 0 && <option value="">Sin roles permitidos</option>}
+            </select>
+          </label>
+          <label>
+            PIN / contrasena demo
+            <input type="password" value={draft.pin} onChange={(event) => onChange("pin", event.target.value)} placeholder="PIN o contrasena local" required />
+          </label>
+          {mode === "edit" && (
+            <label className="user-form-active-row">
+              <input type="checkbox" checked={draft.active !== false} onChange={(event) => onChange("active", event.target.checked)} />
+              <span>Usuario activo</span>
+            </label>
+          )}
+          {error && <div className="access-error">{error}</div>}
+          <div className="access-actions">
+            <Button type="submit" disabled={allowedRoles.length === 0}>{mode === "edit" ? "Guardar cambios" : "Crear usuario"}</Button>
+            <Button type="button" onClick={onClose} variant="secondary">Cancelar</Button>
+          </div>
+        </form>
+        <p className="access-warning">PIN demo en texto plano: el hash real (bcrypt/argon2) llega con backend en V9.</p>
+      </div>
+    </div>
+  );
+}
+
 function UsersPanelR26({
   activeRole,
   activeUser,
@@ -4820,9 +4870,26 @@ function UsersPanelR26({
   const permissionKeys = Object.keys(HYDRA_PERMISSION_LABELS);
   const isSuperadmin = activeRole?.id === "superadmin";
   const canManageAny = roleHasPermission(activeRole, "manageUsers") || roleHasPermission(activeRole, "manageProjectUsers");
-  const visibleUsers = isSuperadmin
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [cityFilter, setCityFilter] = useState("todas");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const baseVisibleUsers = isSuperadmin
     ? users
     : users.filter((user) => user.id === activePerson?.id || userCanAccessProject(user, activeProject?.id));
+  const visibleUsers = baseVisibleUsers.filter((user) => {
+    if (roleFilter !== "todos" && user.roleId !== roleFilter) return false;
+    if (cityFilter !== "todas") {
+      if (cityFilter === "*") {
+        if (!user.projectIds?.includes("*")) return false;
+      } else if (!user.projectIds?.includes(cityFilter) && !user.projectIds?.includes("*")) {
+        return false;
+      }
+    }
+    if (statusFilter === "activos" && user.active === false) return false;
+    if (statusFilter === "inactivos" && user.active !== false) return false;
+    return true;
+  });
+  const filterCityOptions = isSuperadmin ? projects : projects.filter((project) => userCanAccessProject(activePerson, project.id));
   const currentActivity = activePerson
     ? {
         userId: activePerson.id,
@@ -4855,7 +4922,24 @@ function UsersPanelR26({
         <Info title="Persona activa" value={activePerson?.name || "Sin sesion"} />
         <Info title="Rol" value={activeRole?.name || "Sin rol"} />
         <Info title="Ciudad activa" value={activeProject?.name || "Sin proyecto"} />
-        <Info title="Usuarios visibles" value={visibleUsers.length} />
+        <Info title="Usuarios visibles" value={`${visibleUsers.length}/${baseVisibleUsers.length}`} />
+      </div>
+
+      <div className="users-filters audit-filters">
+        <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} aria-label="Filtrar por rol">
+          <option value="todos">Todos los roles</option>
+          {HYDRA_ROLES.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+        </select>
+        <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Filtrar por ciudad">
+          <option value="todas">Todas las ciudades</option>
+          <option value="*">Acceso global (Superadmin)</option>
+          {filterCityOptions.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrar por estado">
+          <option value="todos">Todos los estados</option>
+          <option value="activos">Solo activos</option>
+          <option value="inactivos">Solo inactivos</option>
+        </select>
       </div>
 
       <div className="users-table-wrap">
@@ -5009,6 +5093,7 @@ function App() {
   const [loginUserId, setLoginUserId] = useState(savedSessionOnLoad?.userId || getFirstUserForRole(savedUsersOnLoad, savedSessionOnLoad?.roleId)?.id || savedUsersOnLoad.find((user) => user.active !== false)?.id || "");
   const [loginPin, setLoginPin] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [userFormState, setUserFormState] = useState({ open: false, mode: "create", userId: null, draft: { name: "", username: "", roleId: "viewer", pin: "1111", active: true }, error: "" });
   const [activeSection, setActiveSection] = useState(() => {
     if (typeof window === "undefined" || !storageAvailable()) return "Inicio";
     const stored = window.localStorage.getItem(HYDRA_SECTION_KEY);
@@ -5300,33 +5385,23 @@ function App() {
     setLog((old) => [`Proyecto renombrado: ${cleaned}.`, ...old].slice(0, 120));
   }
 
+  function userFormAllowedRoles() {
+    return HYDRA_ROLES.filter((role) => roleHasPermission(activeRole, "manageUsers") || roleLevel(activePerson?.roleId) > roleLevel(role.id));
+  }
+
   function createUser() {
     if (!roleHasPermission(activeRole, "manageUsers") && !roleHasPermission(activeRole, "manageProjectUsers")) {
       handlePermissionDenied("manageProjectUsers", "crear usuario");
       return;
     }
-    const name = window.prompt("Nombre de la persona", "Nuevo usuario");
-    if (name === null) return;
-    const username = window.prompt("Usuario de acceso", slugProjectName(name).replace(/-/g, "."));
-    if (username === null) return;
-    const allowedRoles = HYDRA_ROLES.filter((role) => roleHasPermission(activeRole, "manageUsers") || roleLevel(activePerson?.roleId) > roleLevel(role.id));
-    const roleId = window.prompt(`Rol (${allowedRoles.map((role) => role.id).join(", ")})`, allowedRoles[0]?.id || "viewer");
-    if (roleId === null) return;
-    const selectedRole = allowedRoles.find((role) => role.id === roleId) || allowedRoles[0];
-    const pin = window.prompt("PIN / contrasena demo", "1111");
-    if (pin === null) return;
-    const user = {
-      id: `user-${slugProjectName(username)}-${Date.now().toString(36)}`,
-      name: cleanProjectName(name, "Nuevo usuario"),
-      username: String(username || "").trim() || `usuario${users.length + 1}`,
-      roleId: selectedRole.id,
-      pin: String(pin || "1111"),
-      projectIds: roleHasPermission(activeRole, "manageUsers") && selectedRole.id === "superadmin" ? ["*"] : [activeProjectId],
-      active: true,
-      projectPermissions: {},
-    };
-    setUsers((old) => [...old, user]);
-    addLog(`Usuario creado: ${user.name} (${selectedRole.name}).`, { category: "permisos", action: "crear usuario", target: user.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    const allowed = userFormAllowedRoles();
+    setUserFormState({
+      open: true,
+      mode: "create",
+      userId: null,
+      draft: { name: "Nuevo usuario", username: `usuario${users.length + 1}`, roleId: allowed[0]?.id || "viewer", pin: "1111", active: true },
+      error: "",
+    });
   }
 
   function editUser(userId) {
@@ -5335,27 +5410,94 @@ function App() {
       handlePermissionDenied("manageProjectUsers", "editar usuario");
       return;
     }
-    const name = window.prompt("Nombre de la persona", target.name);
-    if (name === null) return;
-    const username = window.prompt("Usuario de acceso", target.username);
-    if (username === null) return;
-    const roleId = window.prompt("Rol asignado", target.roleId);
-    if (roleId === null) return;
-    const nextRole = getRoleById(roleId) || getRoleById(target.roleId);
-    if (!roleHasPermission(activeRole, "manageUsers") && roleLevel(activePerson?.roleId) <= roleLevel(nextRole.id)) {
-      handlePermissionDenied("manageProjectUsers", "asignar rol superior o igual");
+    setUserFormState({
+      open: true,
+      mode: "edit",
+      userId,
+      draft: { name: target.name, username: target.username, roleId: target.roleId, pin: target.pin, active: target.active !== false },
+      error: "",
+    });
+  }
+
+  function updateUserFormField(field, value) {
+    setUserFormState((state) => ({ ...state, draft: { ...state.draft, [field]: value }, error: "" }));
+  }
+
+  function closeUserForm() {
+    setUserFormState((state) => ({ ...state, open: false, error: "" }));
+  }
+
+  function submitUserForm(event) {
+    event.preventDefault();
+    const { mode, userId, draft } = userFormState;
+    const cleanName = cleanProjectName(draft.name, mode === "edit" ? "Usuario" : "Nuevo usuario");
+    const cleanUsername = String(draft.username || "").trim();
+    if (!cleanUsername) {
+      setUserFormState((state) => ({ ...state, error: "El usuario de acceso no puede estar vacio." }));
       return;
     }
-    const pin = window.prompt("PIN / contrasena demo", target.pin);
-    if (pin === null) return;
-    setUsers((old) => old.map((user) => user.id === userId ? {
-      ...user,
-      name: cleanProjectName(name, target.name),
-      username: String(username || target.username).trim(),
-      roleId: nextRole.id,
-      pin: String(pin || target.pin),
-    } : user));
-    addLog(`Usuario editado: ${target.username}.`, { category: "permisos", action: "editar usuario", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    const cleanPin = String(draft.pin || "").trim();
+    if (!cleanPin) {
+      setUserFormState((state) => ({ ...state, error: "El PIN demo no puede estar vacio." }));
+      return;
+    }
+    const targetRole = getRoleById(draft.roleId);
+    if (!targetRole) {
+      setUserFormState((state) => ({ ...state, error: "Rol invalido." }));
+      return;
+    }
+    if (!roleHasPermission(activeRole, "manageUsers") && roleLevel(activePerson?.roleId) <= roleLevel(targetRole.id)) {
+      setUserFormState((state) => ({ ...state, error: "No puedes asignar un rol igual o superior al tuyo." }));
+      return;
+    }
+    if (mode === "create") {
+      const usernameTaken = users.some((user) => user.username === cleanUsername);
+      if (usernameTaken) {
+        setUserFormState((state) => ({ ...state, error: "Ese usuario de acceso ya existe." }));
+        return;
+      }
+      const user = {
+        id: `user-${slugProjectName(cleanUsername)}-${Date.now().toString(36)}`,
+        name: cleanName,
+        username: cleanUsername,
+        roleId: targetRole.id,
+        pin: cleanPin,
+        projectIds: roleHasPermission(activeRole, "manageUsers") && targetRole.id === "superadmin" ? ["*"] : [activeProjectId],
+        active: true,
+        projectPermissions: {},
+      };
+      setUsers((old) => [...old, user]);
+      addLog(`Usuario creado: ${user.name} (${targetRole.name}).`, { category: "permisos", action: "crear usuario", target: user.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    } else {
+      const target = getUserById(users, userId);
+      if (!target) {
+        setUserFormState((state) => ({ ...state, error: "El usuario ya no existe." }));
+        return;
+      }
+      const usernameTaken = users.some((user) => user.id !== userId && user.username === cleanUsername);
+      if (usernameTaken) {
+        setUserFormState((state) => ({ ...state, error: "Ese usuario de acceso ya existe." }));
+        return;
+      }
+      const willDeactivate = draft.active === false && target.active !== false;
+      if (willDeactivate && target.roleId === "superadmin") {
+        const activeSuperadmins = users.filter((user) => user.roleId === "superadmin" && user.active !== false).length;
+        if (activeSuperadmins <= 1) {
+          setUserFormState((state) => ({ ...state, error: "No se puede desactivar el ultimo Superadministrador activo." }));
+          return;
+        }
+      }
+      setUsers((old) => old.map((user) => user.id === userId ? {
+        ...user,
+        name: cleanName,
+        username: cleanUsername,
+        roleId: targetRole.id,
+        pin: cleanPin,
+        active: draft.active !== false,
+      } : user));
+      addLog(`Usuario editado: ${target.username}.`, { category: "permisos", action: "editar usuario", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers" });
+    }
+    setUserFormState((state) => ({ ...state, open: false, error: "" }));
   }
 
   function toggleUser(userId) {
@@ -6284,6 +6426,16 @@ function App() {
           onPinChange={(value) => { setLoginPin(value); setLoginError(""); }}
           onSubmit={submitLogin}
           onClose={() => { setLoginOpen(false); setLoginError(""); }}
+        />
+        <UserFormModal
+          open={userFormState.open}
+          mode={userFormState.mode}
+          draft={userFormState.draft}
+          error={userFormState.error}
+          allowedRoles={userFormAllowedRoles()}
+          onChange={updateUserFormField}
+          onSubmit={submitUserForm}
+          onClose={closeUserForm}
         />
     </main>
   );
