@@ -4851,6 +4851,49 @@ function UserFormModal({ open, mode, draft, error, allowedRoles, onChange, onSub
   );
 }
 
+function PermissionsModal({ open, target, projectName, draft, allowedKeys, onToggle, onSubmit, onClose }) {
+  if (!open || !target) return null;
+  const allKeys = Object.keys(HYDRA_PERMISSION_LABELS);
+  return (
+    <div className="access-modal-backdrop" role="presentation">
+      <div className="access-modal" role="dialog" aria-modal="true" aria-label="Permisos extra por ciudad">
+        <div className="access-modal-header">
+          <div>
+            <span>Permisos extra por ciudad</span>
+            <h2>{target.name} en {projectName}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar permisos">x</button>
+        </div>
+        <form className="access-form" onSubmit={onSubmit}>
+          <p className="access-warning">Marca los permisos extra que quieras conceder a este usuario solo dentro de esta ciudad. Los permisos que tu rol no puede conceder aparecen deshabilitados.</p>
+          <div className="permissions-modal-list">
+            {allKeys.map((key) => {
+              const checked = draft.includes(key);
+              const canGrant = allowedKeys.includes(key);
+              return (
+                <label key={key} className={canGrant ? "permission-row" : "permission-row disabled"}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!canGrant}
+                    onChange={() => onToggle(key)}
+                  />
+                  <span>{HYDRA_PERMISSION_LABELS[key]}</span>
+                  {!canGrant && <small>No puedes conceder este permiso.</small>}
+                </label>
+              );
+            })}
+          </div>
+          <div className="access-actions">
+            <Button type="submit">Guardar permisos</Button>
+            <Button type="button" onClick={onClose} variant="secondary">Cancelar</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function UsersPanelR26({
   activeRole,
   activeUser,
@@ -5094,6 +5137,7 @@ function App() {
   const [loginPin, setLoginPin] = useState("");
   const [loginError, setLoginError] = useState("");
   const [userFormState, setUserFormState] = useState({ open: false, mode: "create", userId: null, draft: { name: "", username: "", roleId: "viewer", pin: "1111", active: true }, error: "" });
+  const [permissionsModalState, setPermissionsModalState] = useState({ open: false, userId: null, draft: [] });
   const [activeSection, setActiveSection] = useState(() => {
     if (typeof window === "undefined" || !storageAvailable()) return "Inicio";
     const stored = window.localStorage.getItem(HYDRA_SECTION_KEY);
@@ -5542,22 +5586,46 @@ function App() {
       return;
     }
     const current = target.projectPermissions?.[activeProjectId] || [];
-    const text = window.prompt(`Permisos extra para ${activeProject?.name || "ciudad"} separados por coma`, current.join(","));
-    if (text === null) return;
-    const requested = text.split(",").map((item) => item.trim()).filter(Boolean);
-    const allowed = requested.filter((permission) => HYDRA_PERMISSION_LABELS[permission] && roleHasPermission(activeRole, permission) && (roleHasPermission(activeRole, "manageUsers") || permission !== "manageUsers"));
-    if (allowed.length !== requested.length) {
-      addLog(`Bloqueado parcialmente: permisos no permitidos para ${target.username}.`, { category: "permisos", action: "conceder permisos", target: target.username, result: "bloqueado", permission: "manageProjectUsers", detail: requested.join(",") });
-      alert("Algunos permisos se han bloqueado porque tu usuario no puede concederlos.");
+    setPermissionsModalState({ open: true, userId, draft: [...current] });
+  }
+
+  function permissionsModalAllowedKeys() {
+    return Object.keys(HYDRA_PERMISSION_LABELS).filter((permission) =>
+      roleHasPermission(activeRole, permission)
+      && (roleHasPermission(activeRole, "manageUsers") || permission !== "manageUsers")
+    );
+  }
+
+  function togglePermissionsModalKey(key) {
+    setPermissionsModalState((state) => {
+      const has = state.draft.includes(key);
+      return { ...state, draft: has ? state.draft.filter((item) => item !== key) : [...state.draft, key] };
+    });
+  }
+
+  function closePermissionsModal() {
+    setPermissionsModalState({ open: false, userId: null, draft: [] });
+  }
+
+  function submitPermissionsModal(event) {
+    event.preventDefault();
+    const { userId, draft } = permissionsModalState;
+    const target = getUserById(users, userId);
+    if (!target) {
+      closePermissionsModal();
+      return;
     }
+    const allowed = permissionsModalAllowedKeys();
+    const finalPermissions = draft.filter((permission) => HYDRA_PERMISSION_LABELS[permission] && allowed.includes(permission));
     setUsers((old) => old.map((user) => user.id === userId ? {
       ...user,
       projectPermissions: {
         ...(user.projectPermissions || {}),
-        [activeProjectId]: allowed,
+        [activeProjectId]: finalPermissions,
       },
     } : user));
-    addLog(`Permisos de ciudad actualizados para ${target.username}.`, { category: "permisos", action: "actualizar permisos de ciudad", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers", detail: allowed.join(",") });
+    addLog(`Permisos de ciudad actualizados para ${target.username}.`, { category: "permisos", action: "actualizar permisos de ciudad", target: target.username, permission: roleHasPermission(activeRole, "manageUsers") ? "manageUsers" : "manageProjectUsers", detail: finalPermissions.join(",") });
+    closePermissionsModal();
   }
 
   function saveNow(label = "Guardado manual realizado") {
@@ -6436,6 +6504,16 @@ function App() {
           onChange={updateUserFormField}
           onSubmit={submitUserForm}
           onClose={closeUserForm}
+        />
+        <PermissionsModal
+          open={permissionsModalState.open}
+          target={getUserById(users, permissionsModalState.userId)}
+          projectName={activeProject?.name || "Ciudad"}
+          draft={permissionsModalState.draft}
+          allowedKeys={permissionsModalAllowedKeys()}
+          onToggle={togglePermissionsModalKey}
+          onSubmit={submitPermissionsModal}
+          onClose={closePermissionsModal}
         />
     </main>
   );
