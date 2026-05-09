@@ -3371,7 +3371,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
           </div>
 
           <div className="notice strong">
-            Aquí creas maniobras del cruce: recto, giro izquierda, giro derecha, transversal, paso peatonal o aviso. S11/S12/S13 se define después en "Maniobras semafóricas", porque S indica las ópticas físicas de la maniobra.
+            Aquí creas maniobras del cruce: recto, giro izquierda, giro derecha, transversal, paso peatonal o aviso. S11/S12/S13 se define después en “Maniobras semafóricas”, porque S indica las ópticas físicas de la maniobra.
           </div>
 
           <div className="group-list">
@@ -3404,7 +3404,7 @@ function GeometryEditor({ selected, onUpdateGeometry }) {
                     {Object.entries(MOVEMENT_KINDS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                   </select>
                 </label>
-                <div className="muted">Ópticas base de maniobra: {group.optics.join(", ")} · El tipo S real se define en "Maniobras semafóricas".</div>
+                <div className="muted">Ópticas base de maniobra: {group.optics.join(", ")} · El tipo S real se define en “Maniobras semafóricas”.</div>
               </div>
             ))}
           </div>
@@ -3859,7 +3859,7 @@ function CorridorPanel({ crossings, corridorIds, signals, selectedId, onSelect, 
         </div>
 
         <div className="corridor-flow-card">
-          {corridor.length === 0 && <div className="notice">No hay cruces en el corredor. Pulsa "Corredor" en un cruce o usa 4/5 cruces.</div>}
+          {corridor.length === 0 && <div className="notice">No hay cruces en el corredor. Pulsa “Corredor” en un cruce o usa 4/5 cruces.</div>}
           {corridor.map((crossing, index) => {
             const signal = signals[crossing.id];
             const health = healthLevel(crossing.hardware);
@@ -5651,7 +5651,7 @@ function App() {
     setCorridorIds([]);
     setLinkStartId(null);
     setLinkMode(false);
-    setLog(["Proyecto nuevo vacío creado. Usa "Añadir cruce" para empezar."]);
+    setLog(["Proyecto nuevo vacío creado. Usa “Añadir cruce” para empezar."]);
     setLastCheck([]);
     setStorageStatus("Proyecto nuevo vacío creado. Punto de restauración disponible.");
   }
