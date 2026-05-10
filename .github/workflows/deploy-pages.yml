@@ -1,18 +1,13 @@
-name: Deploy a GitHub Pages
+name: Deploy a GitHub Pages (multi-version)
 
 on:
   push:
     branches:
       - claude/fix-empty-text-blocks-3xL4R
     paths:
-      - "versions/R31/**"
+      - "versions/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
-    inputs:
-      revision:
-        description: "Revision a desplegar (carpeta dentro de versions/, p.ej. R30)"
-        required: false
-        default: "R31"
 
 permissions:
   contents: write
@@ -24,8 +19,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      REVISION: ${{ github.event.inputs.revision || 'R31' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -33,32 +26,98 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Resolver carpeta de release
-        id: paths
+      - name: Detectar revisiones y construir cada una
         run: |
           set -e
-          REV_LOWER=$(echo "${REVISION}" | tr '[:upper:]' '[:lower:]')
-          RELEASE_DIR=$(ls -d versions/${REVISION}/hydra-traffic-lab-*-${REV_LOWER}-release | head -n1)
-          if [ ! -d "$RELEASE_DIR" ]; then
-            echo "::error::No se encontro la carpeta de release para revision ${REVISION}"
-            exit 1
-          fi
-          echo "release_dir=${RELEASE_DIR}" >> "$GITHUB_OUTPUT"
-          echo "Selected: ${RELEASE_DIR}"
+          mkdir -p _pages
+          REVISIONS=()
+          for dir in versions/R*/; do
+            rev=$(basename "$dir")            # e.g. R31
+            rev_lower=$(echo "$rev" | tr '[:upper:]' '[:lower:]')   # r31
+            release_dir=$(ls -d "$dir"hydra-traffic-lab-*-"$rev_lower"-release 2>/dev/null | head -n1 || true)
+            if [ -z "$release_dir" ] || [ ! -f "$release_dir/package.json" ]; then
+              echo "skip $rev (sin package.json)"
+              continue
+            fi
+            echo "::group::Build $rev"
+            (
+              cd "$release_dir"
+              npm install --no-audit --no-fund
+              npx vite build --base "/Linux-Hydra-/$rev_lower/"
+            )
+            mkdir -p "_pages/$rev_lower"
+            cp -r "$release_dir/dist/"* "_pages/$rev_lower/"
+            REVISIONS+=("$rev_lower")
+            echo "::endgroup::"
+          done
+          printf "%s\n" "${REVISIONS[@]}" > _pages/.revisions.txt
+          touch _pages/.nojekyll
 
-      - name: Install dependencies
-        working-directory: ${{ steps.paths.outputs.release_dir }}
-        run: npm install
-
-      - name: Build con base path para GitHub Pages
-        working-directory: ${{ steps.paths.outputs.release_dir }}
-        run: npx vite build --base /Linux-Hydra-/
+      - name: Generar pagina indice
+        run: |
+          set -e
+          cat > _pages/index.html <<'HTML'
+          <!doctype html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Hydra Traffic Lab — versiones desplegadas</title>
+            <style>
+              :root { color-scheme: dark; }
+              body { margin: 0; min-height: 100vh; background: #020617; color: #e2e8f0; font-family: system-ui, sans-serif; display: grid; place-items: center; padding: 32px; }
+              .card { max-width: 720px; width: 100%; border: 1px solid #334155; border-radius: 20px; padding: 28px 32px; background: #0f172a; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+              h1 { margin: 0 0 8px; font-size: 26px; }
+              p.lead { margin: 0 0 24px; color: #94a3b8; }
+              ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+              a.rev { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 12px; background: #0b1120; border: 1px solid #1e293b; color: #e2e8f0; text-decoration: none; transition: background .15s; }
+              a.rev:hover { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.4); }
+              .rev-label { font-family: ui-monospace, Menlo, monospace; font-weight: 700; color: #38bdf8; }
+              .rev-arrow { color: #94a3b8; }
+              footer { margin-top: 24px; color: #64748b; font-size: 12px; }
+              footer a { color: #94a3b8; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h1>Hydra Traffic Lab</h1>
+              <p class="lead">Versiones de la rama moderna F2-V8.3-M1 desplegadas para comparacion.</p>
+              <ul id="rev-list">
+                <li><em>Cargando lista de revisiones...</em></li>
+              </ul>
+              <footer>
+                Repo:
+                <a href="https://github.com/r2ocelot-ui/Linux-Hydra-">r2ocelot-ui/Linux-Hydra-</a>
+                · PR:
+                <a href="https://github.com/r2ocelot-ui/Linux-Hydra-/pull/1">#1</a>
+              </footer>
+            </div>
+            <script>
+              fetch('./.revisions.txt')
+                .then((r) => r.text())
+                .then((txt) => {
+                  const list = document.getElementById('rev-list');
+                  const items = txt.trim().split(/\s+/).filter(Boolean);
+                  if (!items.length) { list.innerHTML = '<li>No hay versiones desplegadas todavia.</li>'; return; }
+                  // Orden descendente (R31 antes que R30) por numero
+                  items.sort((a, b) => parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10));
+                  list.innerHTML = items.map((rev) =>
+                    `<li><a class="rev" href="./${rev}/"><span class="rev-label">${rev.toUpperCase()}</span><span class="rev-arrow">Abrir →</span></a></li>`
+                  ).join('');
+                })
+                .catch(() => {
+                  document.getElementById('rev-list').innerHTML = '<li>No se pudo cargar la lista.</li>';
+                });
+            </script>
+          </body>
+          </html>
+          HTML
 
       - name: Deploy a la rama gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ steps.paths.outputs.release_dir }}/dist
+          publish_dir: _pages
           publish_branch: gh-pages
           force_orphan: true
-          commit_message: "deploy: ${{ env.REVISION }} (${{ github.sha }})"
+          commit_message: "deploy: multi-version (${{ github.sha }})"
