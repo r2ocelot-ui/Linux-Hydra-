@@ -29,7 +29,7 @@ jobs:
       - name: Detectar revisiones y construir cada una
         run: |
           set -e
-          mkdir -p _pages
+          mkdir -p _pages _clientes
           REVISIONS=()
           for dir in versions/R*/; do
             rev=$(basename "$dir")            # e.g. R31
@@ -47,6 +47,9 @@ jobs:
             )
             mkdir -p "_pages/$rev_lower"
             cp -r "$release_dir/dist/"* "_pages/$rev_lower/"
+            # R35: paquete compilado para cliente (solo dist minificado,
+            # sin código fuente ni sourcemaps), descargable como artefacto.
+            ( cd "$release_dir/dist" && zip -qr "$GITHUB_WORKSPACE/_clientes/cliente-$rev_lower.zip" . )
             REVISIONS+=("$rev_lower")
             echo "::endgroup::"
           done
@@ -112,6 +115,14 @@ jobs:
           </body>
           </html>
           HTML
+
+      - name: Publicar paquetes compilados para cliente
+        uses: actions/upload-artifact@v4
+        with:
+          name: clientes-compilados
+          path: _clientes/*.zip
+          if-no-files-found: warn
+          retention-days: 90
 
       - name: Deploy a la rama gh-pages
         uses: peaceiris/actions-gh-pages@v4
