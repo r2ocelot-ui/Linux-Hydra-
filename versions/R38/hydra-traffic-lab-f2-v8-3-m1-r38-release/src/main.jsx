@@ -2892,18 +2892,16 @@ function DetectorPanel({ selected, settings }) {
 function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onAddCamera, onRemoveCamera }) {
   const [cameraPage, setCameraPage] = useState(0);
   const cameras = selected.cameras || [];
-  // R33: tile "+ Añadir cámara" como ultima posicion del carousel.
-  const items = [...cameras, { __addTile: true }];
-  const maxPage = Math.max(0, items.length - 3);
-  const visibleItems = items.slice(cameraPage, cameraPage + 3);
+  const maxPage = Math.max(0, cameras.length - 3);
+  const visibleCameras = cameras.slice(cameraPage, cameraPage + 3);
 
   useEffect(() => {
     setCameraPage(0);
   }, [selected.id]);
 
   useEffect(() => {
-    setCameraPage((page) => Math.min(page, Math.max(0, items.length - 3)));
-  }, [items.length]);
+    setCameraPage((page) => Math.min(page, Math.max(0, cameras.length - 3)));
+  }, [cameras.length]);
 
   return (
     <Panel className="camera-contained-panel">
@@ -2942,12 +2940,7 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
           </button>
 
           <div className="camera-contained-track">
-            {visibleItems.map((camera) => camera.__addTile ? (
-              <button key="add-tile" type="button" className="add-camera-tile camera-card camera-contained-card" onClick={() => onAddCamera(selected.id)}>
-                <span className="add-camera-tile-plus">+</span>
-                <span className="add-camera-tile-label">Añadir cámara</span>
-              </button>
-            ) : (
+            {visibleCameras.map((camera) => (
               <div key={camera.id} className="camera-card camera-contained-card">
                 <button
                   className="camera-remove-x"

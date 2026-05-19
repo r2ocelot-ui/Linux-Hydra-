@@ -135,10 +135,15 @@ Las revisiones R son incrementales sobre `F2-V8.3-M1`.
   renderizar su contenido.
 - Camaras: portado literal el bloque final de R39 (su styles.css
   ~4908-4973) al final de styles.css con !important, igual que en R39.
-  Unifica "Camaras del cruce" y la seccion "Camaras": 3x260px centradas,
-  pantalla 150px, 1/2 columnas con 1/2 camaras. No se toca el bloque
-  header-fix R35.2/R37 (es ortogonal: fija la cabecera, no el tamano de
-  las tarjetas).
+  Ademas se corrige la estructura: R38 (de R33) metia un tile
+  "+ Anadir camara" DENTRO del track como una .camera-contained-card
+  mas; al tener poco contenido quedaba mas bajo que las camaras reales
+  ("unas mas grandes que otras") y descuadraba los selectores :has()
+  de R39 que cuentan tarjetas (1 camara + tile = 2 -> layout de 2). Fix:
+  CameraPanel deja en el track SOLO camaras (como R39); el boton
+  "+ Anadir camara" sigue en la cabecera y en el estado vacio. Asi los
+  :has() funcionan: 1 camara = 1 caja 260px centrada, 2 = dos, 3+ =
+  tres, todas iguales. No se toca el header-fix R35.2/R37 (ortogonal).
 - Eventos: en LogPanel/AuditPanel los botones (Exportar JSON/CSV, Limpiar)
   se montaban sobre el titulo/descripcion porque .panel-header era flex
   sin wrap y el bloque de texto no encogia. Fix CSS no destructivo:
