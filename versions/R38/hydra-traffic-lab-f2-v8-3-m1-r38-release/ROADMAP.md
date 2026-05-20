@@ -126,6 +126,45 @@ Las revisiones R son incrementales sobre `F2-V8.3-M1`.
 - KPI canonico de cruces se mantiene en `SystemOverviewPanel`. Tags
   identitarios (nombre del cruce activo, persona/rol activos) tambien.
 
+### R38.1 - Reparacion de camaras (cascada R39 completa + tile R36)
+
+- Cuando se porto R39 al final de styles.css se copio SOLO el primer
+  bloque de camaras (R39 ~4908-4973, cap 260px). Pero R39 encadena
+  TRES bloques: el R36 (~5022-5121) hace max-width:none + 1fr + screen
+  190, y el R39 (~5163-5260) hace repeat(3, minmax(250px, 1fr)) + gap
+  26 + carousel padding 42 + pantalla 190 + arrows reposicionadas, con
+  media-1180 -> 2 cols y media-820 -> 1 col. Solo gana la cascada el
+  ultimo bloque, por eso las camaras de R39 son anchas creciendo a 1fr
+  y no acotadas a 260. El primer puerto las hacia estrechas a 260 ->
+  visualmente distinto a R39. Bug detectado.
+- Fix: reemplazar el bloque appended por la cadena COMPLETA de R39
+  (los 3 bloques camera-only + sus media queries). No se portan los
+  selectores no-camara del bloque R39 (.hydra-main, .control-header,
+  z-index session/modal/leaflet) porque chocan con el header-fix
+  R35.2/R37 de R38.
+- CameraPanel: cabecera pasa de HelpButton "?" a <h2> + <p> con la
+  descripcion de R39 ("Vista simulada de camaras asociadas al cruce
+  seleccionado. Flechas dentro del recuadro."). Empty-state pasa al
+  formato R39 (<strong>Sin camaras anadidas</strong> + <span>explicacion</span>
+  + <Button>+ Anadir primera camara</Button>).
+- A peticion explicita del usuario, se RESTAURA el tile "+ Anadir
+  camara" DENTRO del carousel (el que tenia R36 y se elimino en el
+  commit anterior por intentar igualar R39 que no lo tiene). R38
+  queda con TRES formas de anadir camara (cabecera + empty-state +
+  tile in-track), como R36, pero con el sizing visual de R39.
+- QA exhaustivo del programa (las ~7430 lineas de main.jsx): todas
+  las secciones (Inicio, Mapa, Cruces, Coordinacion, Escenarios,
+  Informes, Eventos, Dispositivos, Camaras, Configuracion, Usuarios,
+  Sistema) renderizan su handler. Todos los botones envueltos en
+  guardAction/PermissionButton. Sliders y selects funcionan. El bug
+  del crash de geometria (R35) sigue arreglado. Ultimo Superadmin
+  protegido. Timeout de inactividad funcional. Export JSON/CSV
+  operativo. Sin handlers indefinidos en modales. Unicas anomalias:
+  cosmeticas (main.jsx:7185 pasa argumento que openLogin ignora;
+  main.jsx:4697 chequeo typeof === "function" redundante) - no rompen
+  nada y se mantienen.
+- Build verificado sin errores.
+
 ### R38 - 4 mejoras de UI (desde R37)
 
 - Menu "Corredores" roto desde R33: el boton del nav decia "Corredores"

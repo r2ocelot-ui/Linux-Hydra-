@@ -2892,28 +2892,24 @@ function DetectorPanel({ selected, settings }) {
 function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onAddCamera, onRemoveCamera }) {
   const [cameraPage, setCameraPage] = useState(0);
   const cameras = selected.cameras || [];
-  const maxPage = Math.max(0, cameras.length - 3);
-  const visibleCameras = cameras.slice(cameraPage, cameraPage + 3);
+  const items = [...cameras, { __addTile: true }];
+  const maxPage = Math.max(0, items.length - 3);
+  const visibleItems = items.slice(cameraPage, cameraPage + 3);
 
   useEffect(() => {
     setCameraPage(0);
   }, [selected.id]);
 
   useEffect(() => {
-    setCameraPage((page) => Math.min(page, Math.max(0, cameras.length - 3)));
-  }, [cameras.length]);
+    setCameraPage((page) => Math.min(page, Math.max(0, items.length - 3)));
+  }, [items.length]);
 
   return (
     <Panel className="camera-contained-panel">
       <div className="panel-header camera-contained-header">
-        <div className="section-page-title">
+        <div>
           <h2>Cámaras del cruce · {selected.name || "cruce seleccionado"}</h2>
-          <HelpButton title="Cámaras del cruce" items={[
-            "Vista simulada de cámaras asociadas al cruce activo.",
-            "Cada tile muestra dirección, vehículos, cola y visibilidad simulados.",
-            "El tile + Añadir cámara aparece siempre al final del carousel.",
-            "Quitar/activar/cambiar estado requiere permiso maintainHardware.",
-          ]} />
+          <p>Vista simulada de cámaras asociadas al cruce seleccionado. Flechas dentro del recuadro.</p>
         </div>
         <div className="camera-header-actions">
           <Button onClick={() => onAddCamera(selected.id)}>+ Añadir cámara</Button>
@@ -2923,10 +2919,9 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
 
       {cameras.length === 0 ? (
         <div className="camera-empty-state">
-          <button type="button" className="add-camera-tile" onClick={() => onAddCamera(selected.id)}>
-            <span className="add-camera-tile-plus">+</span>
-            <span className="add-camera-tile-label">Añadir cámara</span>
-          </button>
+          <strong>Sin cámaras añadidas</strong>
+          <span>Este cruce no trae cámaras por defecto. Añade una cámara para empezar.</span>
+          <Button onClick={() => onAddCamera(selected.id)}>+ Añadir primera cámara</Button>
         </div>
       ) : (
         <div className="camera-contained-carousel">
@@ -2940,7 +2935,12 @@ function CameraPanel({ selected, settings, onToggleCamera, onToggleCameraOk, onA
           </button>
 
           <div className="camera-contained-track">
-            {visibleCameras.map((camera) => (
+            {visibleItems.map((camera) => camera.__addTile ? (
+              <button key="add-tile" type="button" className="add-camera-tile camera-card camera-contained-card" onClick={() => onAddCamera(selected.id)}>
+                <span className="add-camera-tile-plus">+</span>
+                <span className="add-camera-tile-label">Añadir cámara</span>
+              </button>
+            ) : (
               <div key={camera.id} className="camera-card camera-contained-card">
                 <button
                   className="camera-remove-x"
