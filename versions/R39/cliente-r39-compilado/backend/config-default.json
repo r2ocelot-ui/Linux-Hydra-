@@ -1,0 +1,19 @@
+{
+  "server": {
+    "port": 3001,
+    "host": "0.0.0.0"
+  },
+  "modbus": {
+    "simulationMode": true,
+    "host": "192.168.1.44",
+    "port": 502,
+    "unitId": 1,
+    "channels": 30,
+    "flashMs": 5000,
+    "heartbeatTimeoutMs": 3000,
+    "pollIntervalMs": 300,
+    "reconnectMs": 5000,
+    "requestTimeoutMs": 2000
+  },
+  "conflictPairs": []
+}
