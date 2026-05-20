@@ -5919,3 +5919,40 @@ html {
     grid-template-columns: repeat(2, minmax(250px, 1fr)) !important;
   }
 }
+
+/* R38.2: tile "+ Añadir cámara" dentro del track bien centrado.
+   Las reglas anteriores .camera-contained-card { display: grid;
+   align-content: start; padding: 12px } se aplican TAMBIEN al
+   <button class="add-camera-tile camera-card camera-contained-card">,
+   lo que destruia el centrado flex que ya tenia .add-camera-tile.
+   Con specificity de dos clases + !important forzamos que el tile
+   recupere su layout flex columna centrado y, ademas, se estire a la
+   altura del row (align-self: stretch) para no quedar mas bajo que
+   las camaras reales (el problema "unas mas grandes que otras" que
+   reporto el usuario). */
+.camera-contained-card.add-camera-tile {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  text-align: center !important;
+  align-self: stretch !important;
+  min-height: 160px;
+  height: 100%;
+  padding: 18px !important;
+}
+
+.camera-contained-card.add-camera-tile .add-camera-tile-plus {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  color: #38bdf8;
+}
+
+.camera-contained-card.add-camera-tile .add-camera-tile-label {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #38bdf8;
+}
