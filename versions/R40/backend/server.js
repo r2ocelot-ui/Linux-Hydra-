@@ -189,12 +189,17 @@ async function main() {
   app.post("/api/config", async (req, res) => {
     try {
       const incoming = req.body || {};
+      let modeChanged = false;
       if (incoming.modbus) {
         const wasSimMode = config.modbus.simulationMode;
         Object.assign(config.modbus, incoming.modbus);
         // si cambia modo simulación, hace falta reiniciar driver
         if (incoming.modbus.simulationMode !== undefined && incoming.modbus.simulationMode !== wasSimMode) {
+          modeChanged = true;
           await driver.disconnect();
+          // R40 patch: emitir state inmediato tras disconnect para que el
+          // frontend NO se quede con "Conectado" stale mientras reconectamos
+          broadcast({ type: "state", relays: lastRelayState, connected: false, lastError: "", inSafeMode: safety.inSafeMode });
           if (config.modbus.simulationMode) {
             if (!simulator) {
               simulator = new ModbusRelaySimulator({ port: 1502, channels: config.modbus.channels || 30 });
@@ -219,6 +224,15 @@ async function main() {
       }
       await saveConfig(config);
       appendAudit({ category: "hardware", action: "config-update", result: "ok", detail: incoming });
+      // R40 patch: tras cambio de modo, reconectar automáticamente al nuevo
+      // destino (simulador o módulo real). En R39/R40 el usuario tenía que
+      // pulsar "Conectar" a mano, dejando el driver desconectado y la píldora
+      // del panel en estado stale. Ahora tras tryConnect() se emite state
+      // fresca con el resultado real (connected:true o false + lastError).
+      if (modeChanged) {
+        // No await aquí: que la respuesta del POST no espere el handshake TCP
+        setImmediate(() => tryConnect().catch(() => {}));
+      }
       res.json({ ok: true, config });
     } catch (e) {
       res.status(500).json({ ok: false, error: e.message });
