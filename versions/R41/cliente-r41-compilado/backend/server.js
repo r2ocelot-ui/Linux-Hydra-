@@ -356,6 +356,17 @@ async function main() {
           config.conflictPairs = msg.config.conflictPairs;
           conflictMatrix.setPairs(msg.config.conflictPairs);
         }
+      } else if (msg.type === "control-state") {
+        // R41 patch: frontend notifica cuando se pulsa "Detener envio
+        // de fases" para que el watchdog se desarme y no dispare
+        // safe-mode falso. Si enabled=true no hacemos nada: el watchdog
+        // se armara solo al recibir el primer tick.
+        if (msg.enabled === false) {
+          safety.disarm();
+          // Emite state inmediato para que el frontend quite la
+          // pildora SAFE MODE roja sin esperar a nada mas.
+          broadcast({ type: "state", relays: lastRelayState, connected: driver.connected, lastError, inSafeMode: false });
+        }
       }
     });
   });

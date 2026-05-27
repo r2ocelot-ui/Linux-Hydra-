@@ -34,6 +34,24 @@ export class SafetyMonitor {
     }
   }
 
+  /**
+   * R41 patch: desarmar el watchdog cuando el frontend deja de mandar
+   * ticks explicitamente (usuario pulsa "Detener envio de fases"). Sin
+   * esto, tras parar el envio el monitor seguia armado y a los 10s
+   * disparaba safe-mode falso que solo se podia limpiar reiniciando el
+   * backend. Ahora el frontend manda WS "control-state" enabled:false y
+   * el backend desarma + limpia indicador safe-mode.
+   */
+  disarm() {
+    const wasInSafeMode = this.inSafeMode;
+    this.armed = false;
+    this.inSafeMode = false;
+    this.lastTickAt = 0;
+    if (wasInSafeMode && typeof this.onSafeModeChange === "function") {
+      try { this.onSafeModeChange(false); } catch (e) {}
+    }
+  }
+
   start() {
     // R40: NO ponemos lastTickAt = Date.now() aquí. El monitor queda inactivo
     // hasta que llegue el primer tick (recordTick() pone armed=true). Antes

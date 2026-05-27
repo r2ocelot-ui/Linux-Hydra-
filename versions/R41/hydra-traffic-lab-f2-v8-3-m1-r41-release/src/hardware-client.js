@@ -151,6 +151,20 @@ export function useHardwareClient(baseUrl = "") {
     } catch (e) {}
   }, []);
 
+  /**
+   * R41 patch: notifica al backend cuando el usuario pulsa "Empezar /
+   * Detener envío de fases". El backend usa este aviso para desarmar
+   * el watchdog cuando se detiene el control y asi NO disparar safe-mode
+   * falso a los 10s. Si enabled=true es una pista; el watchdog se armara
+   * de todas formas al recibir el primer tick real.
+   */
+  const sendControlState = useCallback((enabled) => {
+    if (!wsRef.current || wsRef.current.readyState !== 1) return;
+    try {
+      wsRef.current.send(JSON.stringify({ type: "control-state", enabled: !!enabled }));
+    } catch (e) {}
+  }, []);
+
   // Carga inicial del estado simulationMode al conectarse
   useEffect(() => {
     if (!wsConnected) return;
@@ -163,7 +177,7 @@ export function useHardwareClient(baseUrl = "") {
     wsConnected, modbusConnected, relays, lastError, inSafeMode, faults, simulationMode,
     connect, disconnect, allOff, testRelay, setRelay: setRelayApi,
     updateConfig, getConfig, getHealth, getAudit,
-    sendTick, sendSetConfig,
+    sendTick, sendSetConfig, sendControlState,
     setFaults,
   };
 }

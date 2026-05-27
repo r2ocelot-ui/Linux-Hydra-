@@ -3087,7 +3087,15 @@ function HardwarePanel({ selected, activeProject, hardwareClient, onUpdateHardwa
 
   async function toggleEnabled() {
     if (!allowed) { onPermissionDenied?.("maintainHardware", "activar/desactivar control hardware"); return; }
-    onUpdateHardwareConfig?.({ ...hwConfig, modbusEnabled: !hwConfig.modbusEnabled });
+    const newEnabled = !hwConfig.modbusEnabled;
+    onUpdateHardwareConfig?.({ ...hwConfig, modbusEnabled: newEnabled });
+    // R41 patch: avisar al backend del cambio de estado de control para
+    // que el watchdog se desarme cuando dejamos de mandar ticks y NO
+    // dispare safe-mode falso a los 10s (que solo se podia limpiar
+    // reiniciando el backend). Si enabled=true no es estrictamente
+    // necesario pero lo enviamos por simetria; el watchdog se arma
+    // realmente al primer tick que llegue.
+    try { hardwareClient.sendControlState?.(newEnabled); } catch (e) {}
   }
 
   async function doConnect() {
