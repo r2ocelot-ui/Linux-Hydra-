@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydra Traffic Lab — versiones desplegadas</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; min-height: 100vh; background: #020617; color: #e2e8f0; font-family: system-ui, sans-serif; display: grid; place-items: center; padding: 32px; }
+    .card { max-width: 720px; width: 100%; border: 1px solid #334155; border-radius: 20px; padding: 28px 32px; background: #0f172a; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+    h1 { margin: 0 0 8px; font-size: 26px; }
+    p.lead { margin: 0 0 24px; color: #94a3b8; }
+    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    a.rev { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 12px; background: #0b1120; border: 1px solid #1e293b; color: #e2e8f0; text-decoration: none; transition: background .15s; }
+    a.rev:hover { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.4); }
+    .rev-label { font-family: ui-monospace, Menlo, monospace; font-weight: 700; color: #38bdf8; }
+    .rev-arrow { color: #94a3b8; }
+    footer { margin-top: 24px; color: #64748b; font-size: 12px; }
+    footer a { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hydra Traffic Lab</h1>
+    <p class="lead">Versiones de la rama moderna F2-V8.3-M1 desplegadas para comparacion.</p>
+    <ul id="rev-list">
+      <li><em>Cargando lista de revisiones...</em></li>
+    </ul>
+    <footer>
+      Repo:
+      <a href="https://github.com/r2ocelot-ui/Linux-Hydra-">r2ocelot-ui/Linux-Hydra-</a>
+      · PR:
+      <a href="https://github.com/r2ocelot-ui/Linux-Hydra-/pull/1">#1</a>
+    </footer>
+  </div>
+  <script>
+    fetch('./.revisions.txt')
+      .then((r) => r.text())
+      .then((txt) => {
+        const list = document.getElementById('rev-list');
+        const items = txt.trim().split(/\s+/).filter(Boolean);
+        if (!items.length) { list.innerHTML = '<li>No hay versiones desplegadas todavia.</li>'; return; }
+        // Orden descendente (R31 antes que R30) por numero
+        items.sort((a, b) => parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10));
+        list.innerHTML = items.map((rev) =>
+          `<li><a class="rev" href="./${rev}/"><span class="rev-label">${rev.toUpperCase()}</span><span class="rev-arrow">Abrir →</span></a></li>`
+        ).join('');
+      })
+      .catch(() => {
+        document.getElementById('rev-list').innerHTML = '<li>No se pudo cargar la lista.</li>';
+      });
+  </script>
+</body>
+</html>
