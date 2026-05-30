@@ -1,0 +1,19 @@
+{
+  "name": "hydra-modbus-backend",
+  "version": "0.1.0",
+  "description": "Backend Modbus TCP para Hydra Traffic Lab F2-V8.3-M1-R43",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:sim": "node server.js --sim",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
