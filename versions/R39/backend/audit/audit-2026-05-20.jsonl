@@ -1,0 +1,5 @@
+{"ts":"2026-05-20T21:24:33.205Z","category":"hardware","action":"connected","target":"127.0.0.1:1502","result":"ok"}
+{"ts":"2026-05-20T21:24:35.000Z","category":"hardware","action":"test-relay","target":"Q3","result":"ok","detail":{"durationMs":600}}
+{"ts":"2026-05-20T21:24:36.206Z","category":"hardware","action":"safe-mode-triggered","result":"all-off-applied","detail":{"reason":"tick-timeout","elapsedMs":3001}}
+{"ts":"2026-05-20T21:24:36.418Z","category":"hardware","action":"set-relay","target":"Q15","result":"ok","detail":{"on":true}}
+{"ts":"2026-05-20T21:24:36.425Z","category":"hardware","action":"all-off","result":"ok","detail":"manual"}
