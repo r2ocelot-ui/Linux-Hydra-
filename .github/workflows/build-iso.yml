@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 concurrency:
   group: build-iso-${{ github.ref }}
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Liberar espacio en disco (agresivo)
+      - name: Liberar espacio en disco
         run: |
           echo "ANTES:" && df -h /
           sudo rm -rf \
@@ -40,36 +40,85 @@ jobs:
             /usr/local/share/chromium \
             /usr/local/share/powershell \
             /usr/lib/jvm \
-            "$AGENT_TOOLSDIRECTORY" || true
+            "$AGENT_TOOLSDIRECTORY" 2>/dev/null || true
           sudo apt-get remove -y --purge \
             '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' \
             'php.*' '^mongodb-.*' '^mysql-.*' \
             azure-cli google-cloud-cli google-chrome-stable \
-            firefox powershell mono-devel libgl1-mesa-dri \
-            'temurin-.*-jdk' 2>/dev/null || true
+            firefox powershell mono-devel 2>/dev/null || true
           sudo apt-get autoremove -y
           sudo apt-get clean
           sudo docker image prune -af 2>/dev/null || true
-          sudo journalctl --vacuum-size=10M || true
           echo "DESPUÉS:" && df -h /
 
-      - name: Construir ISO en contenedor Debian Bookworm
+      - name: Instalar live-build y dependencias
         run: |
-          chmod +x .github/scripts/build-in-container.sh
-          docker run --rm --privileged \
-            --volume "$PWD:/workspace" \
-            --workdir /workspace \
-            debian:bookworm \
-            bash /workspace/.github/scripts/build-in-container.sh
-
-      - name: Información de la ISO
-        if: success()
-        run: |
-          echo "──────────────────────────────"
-          ls -lh build/hydra-os-amd64.iso
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            live-build \
+            debootstrap \
+            squashfs-tools \
+            xorriso \
+            grub-efi-amd64-bin \
+            grub-pc-bin \
+            syslinux-common \
+            isolinux \
+            mtools \
+            dosfstools \
+            binutils \
+            debian-archive-keyring \
+            ca-certificates \
+            rsync \
+            wget
           echo ""
-          echo "SHA256: $(cat build/hydra-os-amd64.iso.sha256)"
-          echo "──────────────────────────────"
+          echo "live-build version:"
+          dpkg -l live-build | tail -1
+
+      - name: Preparar includes del chroot
+        run: |
+          sudo mkdir -p build/config/includes.chroot/etc/calamares.hydra
+          sudo cp -r calamares/. build/config/includes.chroot/etc/calamares.hydra/
+          sudo mkdir -p build/config/includes.chroot/etc/skel
+          sudo cp -r kde-config/skel/. build/config/includes.chroot/etc/skel/
+          echo "Listas de paquetes activas:"
+          ls -la build/config/package-lists/
+
+      - name: Ejecutar lb config
+        working-directory: build
+        run: |
+          sudo lb clean --purge || true
+          sudo lb config
+
+      - name: Ejecutar lb build (30-60 min)
+        working-directory: build
+        run: |
+          set +e
+          sudo lb build 2>&1 | tee build.log
+          LB_EXIT=${PIPESTATUS[0]}
+          echo ""
+          echo "════════════════════════════════"
+          echo "lb build terminó con código: $LB_EXIT"
+          echo "Espacio en disco tras el build:"
+          df -h /
+          echo "════════════════════════════════"
+
+          ISO=$(find . -maxdepth 2 -name "*.iso" -type f 2>/dev/null | head -1)
+          if [[ -z "$ISO" ]]; then
+            echo "✗ No se generó ninguna ISO"
+            echo ""
+            echo "═══ ÚLTIMAS 200 LÍNEAS DEL LOG ═══"
+            tail -200 build.log
+            exit 1
+          fi
+
+          sudo mv "$ISO" hydra-os-amd64.iso
+          sudo chown "$USER:$USER" hydra-os-amd64.iso
+          ls -lh hydra-os-amd64.iso
+          sha256sum hydra-os-amd64.iso > hydra-os-amd64.iso.sha256
+          md5sum    hydra-os-amd64.iso > hydra-os-amd64.iso.md5
+          echo ""
+          echo "✓ ISO generada correctamente:"
+          cat hydra-os-amd64.iso.sha256
 
       - name: Subir ISO como artefacto
         if: success()
@@ -83,25 +132,14 @@ jobs:
           retention-days: 14
           compression-level: 0
 
-      - name: Subir logs de build (siempre)
+      - name: Subir log de build (siempre)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
-          path: |
-            build/build.log
-            build/config.log
+          name: build-log
+          path: build/build.log
           retention-days: 7
           if-no-files-found: ignore
-
-      - name: Mostrar log si falla
-        if: failure()
-        run: |
-          echo "═══ build.log (últimas 300 líneas) ═══"
-          tail -300 build/build.log 2>/dev/null || echo "(sin log)"
-          echo ""
-          echo "═══ config.log (completo) ═══"
-          cat build/config.log 2>/dev/null || echo "(sin log)"
 
       - name: Publicar Release (solo en tag vX.Y.Z)
         if: success() && startsWith(github.ref, 'refs/tags/v')
